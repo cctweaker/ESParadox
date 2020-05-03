@@ -8,12 +8,6 @@ boolean panel_connected = false;
 uint8_t paradox_rx[paradox_message_length];
 uint8_t paradox_tx[paradox_message_length];
 
-#define PCpassword1 0xA0
-#define PCpassword2 0xA0
-
-#define Mpassword1 0x19
-#define Mpassword2 0x69
-
 
 const boolean DEBUG = false;
 

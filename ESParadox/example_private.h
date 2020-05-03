@@ -27,3 +27,16 @@ const char passb[] = "abcdefgh";
 
 // WIFIManager setups are nicer but if your AC power goes down and the router with it
 // the ESP can boot in station mode and allow hijacking
+
+
+// PCpassword is the one used by WinLoad or Babyware to connect.
+// default is 0000
+// serial comm sends it in two bytes
+// if a byte is smaller than 0x10 then it adds 0xA0 to it hence 0000 is sent as 0xA0A0 hex.
+#define PCpassword1 0xA0
+#define PCpassword2 0xA0
+
+// Master password / main user password
+// below data corresponds to 1234 password, input your own here
+#define Mpassword1 0x12
+#define Mpassword2 0x34
