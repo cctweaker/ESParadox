@@ -105,13 +105,33 @@ void send_panel_status_to_mqtt()
     StaticJsonDocument<1024> doc;
 
     if (timer_loss)
-    doc["trouble"]["timer"] = "Timer loss";
+        doc["trouble"]["timer"] = "Timer loss";
     if (power_trouble)
-    doc["trouble"]["power"] = "Power trouble";
+        doc["trouble"]["power"] = "Power trouble";
     if (ac_failure)
-    doc["trouble"]["ac"] = "AC failure";
+        doc["trouble"]["ac"] = "AC failure";
     if (low_battery)
-    doc["trouble"]["battery"] = "Low battery";
+        doc["trouble"]["battery"] = "Low battery";
+    if (telephone_trouble)
+        doc["trouble"]["tel"] = "Telephone trouble";
+    doc["acv"] = ac_voltage;
+    doc["dcv"] = dc_voltage;
+    doc["bat"] = battery_voltage;
+
+    if (fire)
+        doc["alarm"] = "Fire";
+    if (audible)
+        doc["alarm"] = "Audible";
+    if (silent)
+        doc["alarm"] = "Silent";
+    if (alarm)
+        doc["alarm"] = "Alarm";
+    if (stay)
+        doc["alarm"] = "Stay";
+    if (sleep)
+        doc["alarm"] = "Sleep";
+    if (arm)
+        doc["alarm"] = "Arm";
 
     String mesaj;
     serializeJson(doc, mesaj);

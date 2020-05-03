@@ -12,6 +12,14 @@ void check_data()
         return;
     }
 
+    if (!check_checksum())
+    {
+        // data not usable
+        got_data = false;
+        flush_serial_buffer();
+        return;
+    }
+
     got_paradox_data = true;
 
     if (first_byte == 0xE0)
@@ -20,7 +28,6 @@ void check_data()
         {
             panel_connected = false;
             got_paradox_data = false; // data dealt with
-
         }
         else if (paradox_rx[7] == 0x30 && paradox_rx[8] == 2)
         {
@@ -229,7 +236,6 @@ void panel_set_time()
     struct tm *timeinfo;
 
     uint8_t year = timeinfo->tm_year - 100;
-    
 
     clear_paradox_tx();
     paradox_tx[0] = 0x30;
@@ -324,4 +330,26 @@ void clear_paradox_tx()
     {
         paradox_tx[i] = 0x00;
     }
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+
+boolean check_checksum()
+{
+    uint16_t checksum = 0;
+    uint8_t calc = 0;
+    uint8_t i = 0;
+
+    for (i = 0; i < paradox_checksum_length; i++)
+    {
+        checksum += paradox_rx[i];
+    }
+    calc = checksum;
+
+    if (calc == paradox_rx[36])
+        return true;
+
+    return false;
 }
