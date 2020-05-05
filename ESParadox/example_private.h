@@ -1,42 +1,91 @@
+///////////////////////////////////////////////////////////////////////
 // example file for private data, rename to private.h before building the project
+///////////////////////////////////////////////////////////////////////
 
-#define LOC "location"          // location of your ESParadox device
-#define HOSTNAME "esparadox"    // hostname for esp-07 device and mqtt topic name of your ESParadox device
-
+///////////////////////////////////////////////////////////////////////
+// device locarion and name
+///////////////////////////////////////////////////////////////////////
+#define LOC "location"       // location of your ESParadox device
+#define HOSTNAME "esparadox" // hostname for esp-07 device and mqtt topic name of your ESParadox device
+///////////////////////////////////////////////////////////////////////
 // the mqtt topic name using above data will be
 // "location/esparadox/"
+///////////////////////////////////////////////////////////////////////
 
+///////////////////////////////////////////////////////////////////////
+// MQTT login
+///////////////////////////////////////////////////////////////////////
+const char MQTT_HOST[] = "mqtt.server.local"; // mqtt server name
+const int MQTT_PORT = 8883;                   // secure port
+const char MQTT_USER[] = "mqtt_user";         // mqtt username
+const char MQTT_PASS[] = "mqtt_password";     // mqtt password
+///////////////////////////////////////////////////////////////////////
 
-const char MQTT_HOST[] = "mqtt.server.local";       // mqtt server name
-const int MQTT_PORT = 8883;                         // secure port
-const char MQTT_USER[] = "mqtt_user";               // mqtt username
-const char MQTT_PASS[] = "mqtt_password";           // mqtt password
-
-
-// your main SSID & PASS
+///////////////////////////////////////////////////////////////////////
+// main WiFi SSID & PASS
+///////////////////////////////////////////////////////////////////////
 const char ssid[] = "SSID";
 const char pass[] = "password";
+///////////////////////////////////////////////////////////////////////
 
-// backup SSID & PASS
+///////////////////////////////////////////////////////////////////////
+// backup WiFi SSID & PASS
 // set it up on your phone to allow initial setup or changes in the future
 // or add your second SSID if you have it
+///////////////////////////////////////////////////////////////////////
 const char ssidb[] = "AndroidAP";
 const char passb[] = "abcdefgh";
 // for safety, if main network fails ESParadox will try to connect to backup SSID
 // if backup SSID is not present then the unit will restart
-
-// WIFIManager setups are nicer but if your AC power goes down and the router with it
+// WIFIManager setups are nicer but if your AC power goes down on your router
 // the ESP can boot in station mode and allow hijacking
+///////////////////////////////////////////////////////////////////////
 
 
-// PCpassword is the one used by WinLoad or Babyware to connect.
-// default is 0000
-// serial comm sends it in two bytes
-// if a byte is smaller than 0x10 then it adds 0xA0 to it hence 0000 is sent as 0xA0A0 hex.
-#define PCpassword1 0xA0
-#define PCpassword2 0xA0
+///////////////////////////////////////////////////////////////////////
+// select connection method to panel
+///////////////////////////////////////////////////////////////////////
+// Winload uses PCpass
+#define WINLOAD 0
+// NEware uses Upass
+#define NEWARE 1
+// set the desired method to 1
+// set the other method to 0
+// recommended NEWARE 1, WINLOAD 0
+///////////////////////////////////////////////////////////////////////
 
-// Master password / main user password
-// below data corresponds to 1234 password, input your own here
-#define Mpassword1 0x12
-#define Mpassword2 0x34
+///////////////////////////////////////////////////////////////////////
+// adjust SourceID based on NEWARE / WINLOAD selection
+///////////////////////////////////////////////////////////////////////
+#define SourceID NEWARE_DIRECT
+// #define SourceID NEWARE_IP
+// #define SourceID WINLOAD_DIRECT
+// #define SourceID WINLOAD_IP
+// uncomment just one, recommended NEWARE_DIRECT
+///////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////
+// Winload
+///////////////////////////////////////////////////////////////////////
+#define PCpassh 0x00
+#define PCpassl 0x00
+// 0000 is the default password, yours could be different
+///////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////
+// NEware user password
+///////////////////////////////////////////////////////////////////////
+// it's your password that you use on the panel
+#define UpassD1 0x00
+#define UpassD2 0x00
+#define UpassD3 0x00
+// update with your user password
+// if password is 4 numbers long update UpD1 & UpD2 and leave UpD3 0x00
+///////////////////////////////////////////////////////////////////////
+// NEware User ID
+#define UserIDh 0x00
+#define UserIDl 0x00
+// each user has it's own ID, master user is 0000
+// each user has it's own password too so
+// make sure UserID and password match.
+///////////////////////////////////////////////////////////////////////
