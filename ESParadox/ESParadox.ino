@@ -6,6 +6,7 @@
 #include <FS.h>
 #include <ESP8266httpUpdate.h>
 
+#include "paradox_constants.h"
 #include "private.h"
 #include "mqtt.h"
 #include "paradox.h"
@@ -45,33 +46,7 @@ void loop()
   }
 
   client.loop();
-
-  yield();
-
-  if (command)
-  {
-    panel_command();
-  }
-
-  if (got_paradox_data)
-  {
-    send_to_mqtt();
-  }
-
-  yield();
-
-  if (got_data)
-  {
-    check_data();
-  }
-
-  yield();
-
-  if (Serial.available() >= paradox_message_length)
-  {
-    // read_data returns true if paradox_rx is filled
-    got_data = read_data();
-  }
+  paradox_loop();
 
   yield();
 
@@ -80,32 +55,6 @@ void loop()
     last_heartbeat = millis();
     client.publish(MQTT_HB_TOPIC, panel_connected ? "C" : "nc", false, 0);
   }
-
-  yield();
-
-  if ((unsigned long)(millis() - pdlh) > PDHP)
-  {
-    if (panel_connected)
-    {
-      panel_status();
-      send_panel_status_to_mqtt();
-      pdlh = millis();
-    }
-  }
-
-  yield();
-
-  if (!panel_connected)
-  {
-    panel_login();
-  }
-
-  yield();
-
-  if (set_time)
-    panel_set_time();
-
-  yield();
 }
 
 void flush_serial_buffer()
