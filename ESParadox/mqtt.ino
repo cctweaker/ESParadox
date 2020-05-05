@@ -1,5 +1,11 @@
 void mqtt_loop()
 {
+    if (got_mqtt_data)
+    {
+        send_to_mqtt();
+        return;
+    }
+
     if ((unsigned long)(millis() - last_heartbeat) > heartbeat_period)
     {
         last_heartbeat = millis();
@@ -78,38 +84,9 @@ void messageReceived(String &topic, String &payload)
 
 void send_to_mqtt()
 {
-    StaticJsonDocument<1024> doc;
-
-    uint8_t i = 0;
-
-    String label = "";
-
-    for (i = 15; i <= 30; i++)
-    {
-        if (paradox_rx[i] > 0)
-        {
-            label = label + char(paradox_rx[i]);
-        }
-        else
-        {
-            label = label + " ";
-        }
-    }
-
-    doc["g"] = paradox_rx[7];
-    doc["s"] = paradox_rx[8];
-    doc["p"] = paradox_rx[9];
-    doc["l"] = label;
-    // doc["lt"] = paradox_rx[14];
-
-    String mesaj;
-    serializeJson(doc, mesaj);
-    doc.clear();
-
-    client.publish(MQTT_PUB_TOPIC, mesaj, false, 0);
-
-    got_paradox_data = false;
-    got_data = false;
+    got_mqtt_data = false;
+    client.publish(topic, mesaj, false, 0);
+    // client.publish(MQTT_PUB_TOPIC, mesaj, false, 0);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -118,19 +95,16 @@ void send_to_mqtt()
 
 void send_raw_to_mqtt()
 {
-    if (!DEBUG)
-        return;
-
     uint8_t i = 0;
-    String raw = "";
+    mesaj = "";
 
     for (i = 0; i < paradox_message_length; i++)
     {
-        raw += String(paradox_rx[i], HEX);
-        raw += " ";
+        mesaj += String(paradox_rx[i], HEX);
+        mesaj += " ";
     }
 
-    client.publish(MQTT_RAW_TOPIC, raw, false, 0);
+    client.publish(MQTT_RAW_TOPIC, mesaj, false, 0);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -172,7 +146,7 @@ void send_panel_status_to_mqtt()
         doc["alarm"] = "Arm";
 */
 
-    String mesaj;
+    // String mesaj;
     serializeJson(doc, mesaj);
     doc.clear();
 

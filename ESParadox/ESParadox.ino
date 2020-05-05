@@ -12,7 +12,7 @@
 #include "paradox.h"
 
 BearSSL::WiFiClientSecure net;
-MQTTClient client;
+MQTTClient client(256);
 time_t now;
 
 void setup()
@@ -41,20 +41,16 @@ void setup()
 void loop()
 {
   if (!client.connected())
-  {
     mqtt_connect();
-  }
 
   client.loop();
-  paradox_loop();
   mqtt_loop();
+  paradox_loop();
 }
 
 void flush_serial_buffer()
 {
   Serial.flush();
   while (Serial.read() >= 0)
-  {
     yield();
-  }
 }
