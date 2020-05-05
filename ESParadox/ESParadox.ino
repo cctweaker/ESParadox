@@ -47,14 +47,7 @@ void loop()
 
   client.loop();
   paradox_loop();
-
-  yield();
-
-  if ((unsigned long)(millis() - last_heartbeat) > heartbeat_period)
-  {
-    last_heartbeat = millis();
-    client.publish(MQTT_HB_TOPIC, panel_connected ? "C" : "nc", false, 0);
-  }
+  mqtt_loop();
 }
 
 void flush_serial_buffer()
