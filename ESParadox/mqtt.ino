@@ -315,7 +315,136 @@ void send_mqtt_panel0_data()
 void send_mqtt_panel1_data()
 {
     panel_status_1_read = false;
+
+    uint8_t i = 0;
+    uint8_t b = 0;
+
+    StaticJsonDocument<1024> doc;
+
+    JsonArray rfst = doc.createNestedArray("RF Supervision Trouble");
+    // PANEL 1 BYTE 4-7
+    for (i = 0; i < 4; i++)
+    {
+        for (b = 0; b < 8; b++)
+        {
+            if (bitRead(PS1[i], b))
+                rfst.add("Zone " + String(i * 8 + b + 1));
+        }
+    }
+
+    // PANEL 1 BYTE 8-9
+    for (i = 0; i < 4; i++)
+    {
+        for (b = 0; b < 8; b++)
+        {
+            if (bitRead(PS1[4 + i], b))
+                rfst.add("PGM " + String(i * 8 + b + 1));
+        }
+    }
+
+    // PANEL 1 BYTE 10-11
+    for (i = 0; i < 4; i++)
+    {
+        for (b = 0; b < 8; b++)
+        {
+            if (bitRead(PS1[6 + i], b))
+                rfst.add("Bus Module " + String(i * 8 + b + 1));
+        }
+    }
+
+    // PANEL 1 BYTE 12
+    for (b = 0; b < 8; b++)
+    {
+        if (bitRead(PS1[8], b))
+            rfst.add("Wireless Repeater/Keyboard " + String(b + 1));
+    }
+
+    JsonArray rflb = doc.createNestedArray("RF Low Battery");
+    // PANEL 1 BYTE 13-16
+    for (i = 0; i < 4; i++)
+    {
+        for (b = 0; b < 8; b++)
+        {
+            if (bitRead(PS1[9 + i], b))
+                rflb.add("Zone " + String(i * 8 + b + 1));
+        }
+    }
+
+    JsonArray p1s = doc.createNestedArray("Partition 1");
+    // PANEL 1 BYTE 17-20
+    for (i = 0; i < 4; i++)
+    {
+        for (b = 0; b < 8; b++)
+        {
+            if (bitRead(PS1[13 + i], b))
+            {
+                panel_1_partition_status_names(i, b); // loads mesaj with proper text
+                p1s.add(mesaj);
+            }
+        }
+    }
+
+    JsonArray p2s = doc.createNestedArray("Partition 2");
+    // PANEL 1 BYTE 21-24
+    for (i = 0; i < 4; i++)
+    {
+        for (b = 0; b < 8; b++)
+        {
+            if (bitRead(PS1[17 + i], b))
+            {
+                panel_1_partition_status_names(i, b); // loads mesaj with proper text
+                p2s.add(mesaj);
+            }
+        }
+    }
+
+    JsonArray acls = doc.createNestedArray("AC lost");
+    // PANEL 1 BYTE 25
+    for (b = 0; b < 8; b++)
+    {
+        if (bitRead(PS1[21], b))
+            acls.add("Wireless Repeater " + String(b + 1));
+    }
+
+    // PANEL 1 BYTE 26
+    for (b = 0; b < 8; b++)
+    {
+        if (bitRead(PS1[22], b))
+            rflb.add("Wireless Repeater " + String(b + 1));
+    }
+
+    // PANEL 1 BYTE 27
+    for (b = 0; b < 8; b++)
+    {
+        if (bitRead(PS1[23], b))
+            acls.add("Wireless Keypad " + String(b + 1));
+    }
+
+    // PANEL 1 BYTE 28
+    for (b = 0; b < 8; b++)
+    {
+        if (bitRead(PS1[24], b))
+            rflb.add("Wireless Keypad " + String(b + 1));
+    }
+
+    // PANEL 1 BYTE 29
+    for (b = 0; b < 8; b++)
+    {
+        if (bitRead(PS1[25], b))
+            rfst.add("Wireless Keypad " + String(b + 1));
+    }
+
+    mesaj = "";
+    serializeJson(doc, mesaj);
+    doc.clear();
+
+    client.publish(MQTT_PANEL_TOPIC, mesaj, false, 0);
 }
+
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+
 void send_mqtt_panel2_data()
 {
     panel_status_2_read = false;
