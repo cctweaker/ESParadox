@@ -545,7 +545,6 @@ void send_mqtt_panel3_data()
     panel_status_3_read = false;
 
     uint8_t i = 0;
-    uint8_t b = 0;
 
     for (i = 0; i < 32; i++)
     {
@@ -555,11 +554,52 @@ void send_mqtt_panel3_data()
         }
     }
 }
+
 void send_mqtt_panel4_data()
 {
     panel_status_4_read = false;
+
+    uint8_t i = 0;
+
+    for (i = 0; i < 16; i++)
+    {
+        if (PS4[i] < 10) // report only if signal less than max
+        {
+            client.publish(MQTT_PGM_TOPIC + String(i + 1) + "/signal", String(PS4[i]), false, 0);
+        }
+    }
+
+    for (i = 16; i < 18; i++)
+    {
+        if (PS4[i] < 10) // report only if signal less than max
+        {
+            client.publish(MQTT_WREP_TOPIC + String(i + 1) + "/signal", String(PS4[i]), false, 0);
+        }
+    }
+
+    for (i = 18; i < 26; i++)
+    {
+        if (PS4[i] < 10) // report only if signal less than max
+        {
+            client.publish(MQTT_WKEY_TOPIC + String(i + 1) + "/signal", String(PS4[i]), false, 0);
+        }
+    }
 }
+
+
 void send_mqtt_panel5_data()
 {
     panel_status_5_read = false;
+
+    uint8_t i = 0;
+    uint8_t b = 0;
+
+    for (i = 0; i < 4; i++)
+    {
+        for (b = 0; b < 8; b++)
+        {
+            if (bitRead(PS5[i], b))
+                client.publish(MQTT_ZONE_TOPIC + String(i * 8 + b + 1), "Exit Delay", false, 0);
+        }
+    }
 }

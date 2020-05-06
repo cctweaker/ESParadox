@@ -17,6 +17,9 @@ unsigned long last_heartbeat = 0;
 
 ///////////////////////////////////////////////////////////////////////
 const char MQTT_ZONE_TOPIC[] = LOC "/" HOSTNAME "/zone";
+const char MQTT_PGM_TOPIC[] = LOC "/" HOSTNAME "/pgm";
+const char MQTT_WREP_TOPIC[] = LOC "/" HOSTNAME "/wrep";
+const char MQTT_WKEY_TOPIC[] = LOC "/" HOSTNAME "/wkey";
 const char MQTT_PARTITION_TOPIC[] = LOC "/" HOSTNAME "/partition";
 const char MQTT_EVENT_TOPIC[] = LOC "/" HOSTNAME "/event";
 const char MQTT_ARM_TOPIC[] = LOC "/" HOSTNAME "/arm";
@@ -24,7 +27,7 @@ const char MQTT_RAW_TOPIC[] = LOC "/" HOSTNAME "/raw";
 const char MQTT_DEBUG_TOPIC[] = LOC "/" HOSTNAME "/debug";
 const char MQTT_PANEL_TOPIC[] = LOC "/" HOSTNAME "/panel";
 const char MQTT_TROUBLE_TOPIC[] = LOC "/" HOSTNAME "/trouble";
-const char MQTT_PANEL_HW_TOPIC[] = LOC "/" HOSTNAME "/panelhw";
+const char MQTT_PANEL_HW_TOPIC[] = LOC "/" HOSTNAME "/panel/info";
 ///////////////////////////////////////////////////////////////////////
 
 
