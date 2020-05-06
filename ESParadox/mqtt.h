@@ -6,23 +6,17 @@
 ///////////////////////////////////////////////////////////////////////
 const char MQTT_WILL_TOPIC[] = LOC "/" HOSTNAME "/status";
 const char MQTT_PUB_TOPIC[] = LOC "/" HOSTNAME "/out";
-const char MQTT_SUB_TOPIC[] = LOC "/" HOSTNAME "/set";
 ///////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////
+// just for debugging, will be eliminated
+///////////////////////////////////////////////////////////////////////
 const char MQTT_HB_TOPIC[] = LOC "/" HOSTNAME "/hb";
-#define heartbeat_period 10 * 1000 // 15 sec
+#define heartbeat_period 10 * 1000 // 10 sec
 unsigned long last_heartbeat = 0;
 ///////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////
-const char MQTT_ZONE_TOPIC[] = LOC "/" HOSTNAME "/zone";
-const char MQTT_PGM_TOPIC[] = LOC "/" HOSTNAME "/pgm";
-const char MQTT_WREP_TOPIC[] = LOC "/" HOSTNAME "/wrep";
-const char MQTT_WKEY_TOPIC[] = LOC "/" HOSTNAME "/wkey";
-const char MQTT_PARTITION_TOPIC[] = LOC "/" HOSTNAME "/partition";
-const char MQTT_EVENT_TOPIC[] = LOC "/" HOSTNAME "/event";
-const char MQTT_ARM_TOPIC[] = LOC "/" HOSTNAME "/arm";
 const char MQTT_RAW_TOPIC[] = LOC "/" HOSTNAME "/raw";
 const char MQTT_DEBUG_TOPIC[] = LOC "/" HOSTNAME "/debug";
 const char MQTT_PANEL_TOPIC[] = LOC "/" HOSTNAME "/panel";

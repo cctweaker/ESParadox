@@ -6,8 +6,8 @@
 #include <FS.h>
 #include <ESP8266httpUpdate.h>
 
-#include "paradox_constants.h"
 #include "private.h"
+#include "paradox_constants.h"
 #include "mqtt.h"
 #include "paradox.h"
 

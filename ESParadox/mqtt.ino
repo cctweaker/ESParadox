@@ -97,8 +97,7 @@ void messageReceived(String &topic, String &payload)
 void send_to_mqtt()
 {
     got_mqtt_data = false;
-    client.publish(topic, mesaj, false, 0);
-    // client.publish(MQTT_PUB_TOPIC, mesaj, false, 0);
+    client.publish(MQTT_EVENT_TOPIC, mesaj, true, 0);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -330,7 +329,7 @@ void send_mqtt_panel0_data()
     serializeJson(doc, mesaj);
     doc.clear();
 
-    client.publish(MQTT_PANEL_TOPIC, mesaj, false, 0);
+    client.publish(MQTT_PANEL_TOPIC + String(0), mesaj, true, 0);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -478,7 +477,7 @@ void send_mqtt_panel1_data()
     serializeJson(doc, mesaj);
     doc.clear();
 
-    client.publish(MQTT_PANEL_TOPIC, mesaj, false, 0);
+    client.publish(MQTT_PANEL_TOPIC + String(1), mesaj, false, 0);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -585,7 +584,6 @@ void send_mqtt_panel4_data()
         }
     }
 }
-
 
 void send_mqtt_panel5_data()
 {
