@@ -108,3 +108,15 @@ void panel_1_partition_status_names(uint8_t byte, uint8_t bit)
         break;
     }
 }
+
+void panel_2_zone_status_names_double(uint8_t bit5, uint8_t bit4)
+{
+    if (bit5 && bit4)
+        mesaj = "In Fire Delay";
+    if (!bit5 && bit4)
+        mesaj = "In Entry Delay";
+    if (bit5 && !bit4)
+        mesaj = "In Intellizone Delay";
+    if (!bit5 && !bit4)
+        mesaj = "In No Delay";
+}
