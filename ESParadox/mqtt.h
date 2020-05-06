@@ -24,6 +24,7 @@ const char MQTT_RAW_TOPIC[] = LOC "/" HOSTNAME "/raw";
 const char MQTT_DEBUG_TOPIC[] = LOC "/" HOSTNAME "/debug";
 const char MQTT_PANEL_TOPIC[] = LOC "/" HOSTNAME "/panel";
 const char MQTT_TROUBLE_TOPIC[] = LOC "/" HOSTNAME "/trouble";
+const char MQTT_PANEL_HW_TOPIC[] = LOC "/" HOSTNAME "/panelhw";
 ///////////////////////////////////////////////////////////////////////
 
 

@@ -36,6 +36,9 @@ void setup()
 
   // flush serial buffer before loop
   flush_serial_buffer();
+
+  // make sure paradox panel connection is closed
+  panel_disconnect();
 }
 
 void loop()

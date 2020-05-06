@@ -7,6 +7,11 @@ void paradox_loop()
         return;
     }
 
+    if (Serial.available())
+    {
+        return;
+    }
+
     if (got_event)
     {
         prepare_event_json();
@@ -19,9 +24,32 @@ void paradox_loop()
         return;
     }
 
-    if (!panel_connected)
+    if (got_mqtt_data)
     {
-        // panel_login();
+        send_to_mqtt();
+        return;
+    }
+
+    if (Serial.available() > 0)
+    {
+        return;
+    }
+
+    if (panel_connection < 4)
+    {
+        panel_login();
+        pdlh = millis();
+        return;
+    }
+
+    if (panel_data_login)
+    {
+        send_mqtt_panel_data();
+    }
+
+    if (!WDC) // bit0 of command byte from Paradox
+    {
+        panel_connection = 0;
         return;
     }
 
@@ -37,17 +65,15 @@ void paradox_loop()
         return;
     }
 
-    // if we need a valid panel data
-    if (panel_status_request < 6)
-    {
-        panel_get_status();
-        return;
-    }
-
     if ((unsigned long)(millis() - pdlh) > PDHP)
     {
         pdlh = millis();
-        panel_status_request = 0;
+
+        panel_get_status();
+        panel_status_request++;
+
+        if (panel_status_request > 5)
+            panel_status_request = 0;
     }
 }
 
@@ -68,21 +94,30 @@ void check_data()
         return;
     }
 
-    // if (!check_checksum())
-    // {
-    //     // data not usable
-    //     flush_serial_buffer();
-    //     return;
-    // }
+    if (!check_checksum())
+    {
+        // data not usable
+        flush_serial_buffer();
+        return;
+    }
 
     // read LSB from command byte
-    SIA = bitRead(paradox_rx[0], 2);
-    WLC = bitRead(paradox_rx[0], 1);
-    WDC = bitRead(paradox_rx[0], 0);
+    if (bitRead(paradox_rx[0], 2))
+        SIA = true;
+    if (bitRead(paradox_rx[0], 1))
+        WLC = true;
+    if (bitRead(paradox_rx[0], 0))
+        WDC = true;
 
     switch (first_byte)
     {
     case 0x00: // panel answer to PC request
+        if (panel_connection != 1)
+        {
+            // data not usable
+            flush_serial_buffer();
+            break;
+        }
         PPI = paradox_rx[4];
         PFV = paradox_rx[5];
         PFR = paradox_rx[6];
@@ -100,29 +135,20 @@ void check_data()
             NFLTH = bitRead(paradox_rx[20], 1);
             CCD = bitRead(paradox_rx[20], 0);
         }
-        panel_start_communication_response = true;
+        panel_connection = 2;
+        panel_data_login = true;
         break;
 
     case 0x10:
+        panel_connection = 4;
+        WDC = true;
         if (NEWARE)
         {
             if (paradox_rx[1] == 0x25 && paradox_rx[2] == 0x10)
             {
                 partition_rights_access_1 = bitRead(paradox_rx[4], 1);
                 partition_rights_access_2 = bitRead(paradox_rx[4], 0);
-                panel_start_communication = false;
-                panel_start_communication_response = false;
-                panel_initialize = false;
-                panel_connected = true;
             }
-        }
-        else
-        {
-            // Winload
-            panel_start_communication = false;
-            panel_start_communication_response = false;
-            panel_initialize = false;
-            panel_connected = true;
         }
         break;
 
@@ -192,34 +218,24 @@ void check_data()
 
     case 0x70:
         // error command
-        panel_start_communication = false;
-        panel_start_communication_response = false;
-        panel_initialize = false;
-        panel_connected = false;
+        panel_connection = 0;
         break;
 
     case 0xE0:
         // event data
         got_event = true;
-        // got_mqtt_data = true;
+
+        if (paradox_rx[7] == 0x30 && paradox_rx[8] == 0x02)
+        {
+            panel_connection = 4;
+        }
+        if (paradox_rx[7] == 0x30 && paradox_rx[8] == 0x03)
+        {
+            panel_connection = 0;
+        }
+
         break;
     }
-
-    // got_paradox_data = true;
-
-    // if (first_byte == 0xE0)
-    // {
-    //     if (paradox_rx[7] == 0x30 && paradox_rx[8] == 3)
-    //     {
-    //         panel_connected = false;
-    //         got_paradox_data = false; // data dealt with
-    //     }
-    //     else if (paradox_rx[7] == 0x30 && paradox_rx[8] == 2)
-    //     {
-    //         panel_connected = true;
-    //         got_paradox_data = false; // data dealt with
-    //     }
-    // }
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -228,22 +244,12 @@ void check_data()
 
 void panel_login()
 {
-    // wait for current message to be received
-    if (Serial.available() > 0)
-        return;
-    // wait for curret data to be checked
-    if (got_data)
-        return;
-    // wait for current checked data to be transmitted to mqtt
-    if (got_mqtt_data)
-        return;
-
     uint8_t i = 0;
 
     // if it is the first step in establishing communications
-    if (!panel_start_communication)
+    if (panel_connection == 0)
     {
-        panel_start_communication = true;
+        panel_connection = 1;
 
         clear_paradox_tx(); // all bytes to 0
 
@@ -258,10 +264,10 @@ void panel_login()
         return;
     }
 
-    // if we got response from panel and not sent the initialize communication command yet
-    if (panel_start_communication_response && !panel_initialize)
+    // if we got response from panel to our previous start communication command
+    if (panel_connection == 2)
     {
-        panel_initialize = true;
+        panel_connection = 3;
 
         clear_paradox_tx(); // all bytes to 0
 
@@ -272,7 +278,7 @@ void panel_login()
         paradox_tx[6] = PFR;
         paradox_tx[7] = PFB;
 
-        if (WINLOAD)
+        if (WINLOAD == 1)
         {
             paradox_tx[8] = PPID1;
             paradox_tx[9] = PPID2;
@@ -281,7 +287,7 @@ void panel_login()
             paradox_tx[13] = 0x00;
         }
 
-        if (NEWARE)
+        if (NEWARE == 1)
         {
             paradox_tx[13] = 0x55;
             paradox_tx[14] = UpassD1;
@@ -304,22 +310,6 @@ void panel_login()
 
 void panel_get_status()
 {
-    // wait for current message to be received
-    if (Serial.available() > 0)
-        return;
-    // wait for curret data to be checked
-    if (got_data)
-        return;
-    // wait for current checked data to be transmitted to mqtt
-    if (got_mqtt_data)
-        return;
-    // return if panel not connected
-    if (!panel_connected)
-        return;
-    // return if panel not 0-5
-    if (panel_status_request > 5)
-        return;
-
     clear_paradox_tx();
 
     paradox_tx[0] = 0x50;
@@ -329,11 +319,7 @@ void panel_get_status()
     paradox_tx[34] = UserIDh;
     paradox_tx[35] = UserIDl;
 
-    panel_status_request++;
-
     send_data();
-
-    return;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -342,24 +328,6 @@ void panel_get_status()
 
 void panel_command()
 {
-    // wait for current message to be received
-    if (Serial.available() > 0)
-        return;
-    // wait for curret data to be checked
-    if (got_data)
-        return;
-    // wait for current checked data to be transmitted to mqtt
-    if (got_mqtt_data)
-        return;
-    // return if panel not connected
-    if (!panel_connected)
-        return;
-    // return if no panel command
-    if (!command)
-        return;
-
-    uint8_t i = 0;
-
     clear_paradox_tx();
 
     paradox_tx[0] = 0x40;
@@ -381,29 +349,11 @@ void panel_command()
 
 void panel_set_time()
 {
-    // wait for current message to be received
-    if (Serial.available() > 0)
-        return;
-    // wait for curret data to be checked
-    if (got_data)
-        return;
-    // wait for current checked data to be transmitted to mqtt
-    if (got_mqtt_data)
-        return;
-    // return if panel not connected
-    if (!panel_connected)
-        return;
-    // return if no panel command
-    if (!command)
-        return;
-
-    uint8_t i = 0;
-
     struct tm *timeinfo;
-
     uint8_t year = timeinfo->tm_year - 100;
 
     clear_paradox_tx();
+
     paradox_tx[0] = 0x30;
     paradox_tx[4] = 20;
     paradox_tx[5] = year;
@@ -426,25 +376,14 @@ void panel_set_time()
 
 void panel_disconnect()
 {
-    // wait for current message to be received
-    if (Serial.available() > 0)
-        return;
-    // wait for curret data to be checked
-    if (got_data)
-        return;
-    // wait for current checked data to be transmitted to mqtt
-    if (got_mqtt_data)
-        return;
-    // return if panel not connected
-    if (!panel_connected)
-        return;
-
     uint8_t i = 0;
 
     clear_paradox_tx();
     paradox_tx[0] = 0x70;
-    paradox_tx[2] = 0x05;
-    paradox_tx[33] = 0x05;
+    paradox_tx[2] = 0x05; // validation byte
+    paradox_tx[33] = SourceID;
+    paradox_tx[34] = UserIDh;
+    paradox_tx[35] = UserIDl;
 
     send_data();
 }
