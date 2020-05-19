@@ -1,5 +1,8 @@
 void mqtt_loop()
 {
+    if (SIA)
+        send_SIA_status();
+
     if (panel_status_0_read)
         send_mqtt_panel0_data();
 
@@ -86,13 +89,14 @@ void messageReceived(String &topic, String &payload)
     deserializeJson(doc, payload);
     yield();
 
-    command = doc["cmd"];
-    subcommand = doc["scmd"];
+    if (doc["cmd"])
+        command = doc["cmd"];
+
+    if (doc["scmd"])
+        subcommand = doc["scmd"];
 
     if (doc["time"])
-    {
         panel_set_date_time = true;
-    }
 
     doc.clear();
 }
@@ -752,4 +756,10 @@ void send_mqtt_panel5_data()
                 client.publish(MQTT_ZONE_TOPIC + String(i * 8 + b + 1) + "/status", "Exit Delay", false, 0);
         }
     }
+}
+
+void send_SIA_status()
+{
+    SIA = false;
+    client.publish(MQTT_SIA_TOPIC, "1", false, 0);
 }

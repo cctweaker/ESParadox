@@ -5,7 +5,6 @@
 void prepare_event_json()
 {
     got_event = false;
-    // got_mqtt_data = true;
 
     StaticJsonDocument<1024> doc;
 
@@ -1023,10 +1022,10 @@ void prepare_event_json()
         client.publish(MQTT_TROUBLE_TOPIC, mesaj, true, 0);
     }
 
+    got_mqtt_data = true;
     mesaj = "";
     serializeJson(doc, mesaj);
     doc.clear();
-    client.publish(MQTT_EVENT_TOPIC, mesaj, true, 0);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1090,6 +1089,8 @@ void get_rx_label()
             mesaj += " ";
         }
     }
+
+    mesaj.trim();
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////

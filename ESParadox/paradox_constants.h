@@ -24,7 +24,7 @@
 ///////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////
-// Actions
+// Actions (cmd by MQTT) command
 #define Stay_Arm 0x01
 #define Stay_Arm2 0x02
 #define Sleep_Arm 0x03
@@ -42,3 +42,13 @@
 #define Reload_RAM 0x80
 #define Future_use 0x90 // for LCD keypad labeling
 ///////////////////////////////////////////////////////////////////////
+// Actions (scmd by MQTT) subcommand
+// default is 0x00
+// for 0x05 command use partition number 0/1
+// for 0x10 command use zone number to bypass
+// for 0x20 command use
+//                      0x04 = one beep
+//                      0x08 = fail beep
+//                      0x0C = two beeps
+//                      0x10 = accept beep
+// for 0x30-0x33 use PGM number (0-15)

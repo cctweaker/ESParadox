@@ -74,11 +74,11 @@ const char MQTT_EVENT_TOPIC[] = LOC "/" HOSTNAME "/event";
 const char MQTT_PARTITION_TOPIC[] = LOC "/" HOSTNAME "/partition/";
 const char MQTT_BELL_TOPIC[] = LOC "/" HOSTNAME "/bell";
 const char MQTT_ALARM_TOPIC[] = LOC "/" HOSTNAME "/alarm";
+const char MQTT_SIA_TOPIC[] = LOC "/" HOSTNAME "/alarm/SIA";
 const char MQTT_ARM_TOPIC[] = LOC "/" HOSTNAME "/arm";
 const char MQTT_TROUBLE_TOPIC[] = LOC "/" HOSTNAME "/trouble";
 ///////////////////////////////////////////////////////////////////////
 
-String topic;
 String mesaj;
 
 ///////////////////////////////////////////////////////////////////////

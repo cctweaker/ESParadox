@@ -45,6 +45,7 @@ void paradox_loop()
     if (panel_data_login)
     {
         send_mqtt_panel_data();
+        return;
     }
 
     if (!WDC) // bit0 of command byte from Paradox
@@ -53,7 +54,7 @@ void paradox_loop()
         return;
     }
 
-    if (command)
+    if (command > 0)
     {
         panel_command();
         return;
@@ -146,8 +147,9 @@ void check_data()
         {
             if (paradox_rx[1] == 0x25 && paradox_rx[2] == 0x10)
             {
-                partition_rights_access_1 = bitRead(paradox_rx[4], 1);
-                partition_rights_access_2 = bitRead(paradox_rx[4], 0);
+                partition_rights_access_2 = bitRead(paradox_rx[4], 1);
+                partition_rights_access_1 = bitRead(paradox_rx[4], 0);
+
             }
         }
         break;
