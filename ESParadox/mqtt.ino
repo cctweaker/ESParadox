@@ -65,12 +65,19 @@ void mqtt_connect()
             ESP.restart();
     }
 
-    client.subscribe(MQTT_SUB_TOPIC, 0);
+    client.subscribe(MQTT_COMMAND_TOPIC, 0);
     client.publish(MQTT_WILL_TOPIC, "1", true, 0);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
+// ########  ########  ######  ######## #### ##     ## ######## ########
+// ##     ## ##       ##    ## ##        ##  ##     ## ##       ##     ##
+// ##     ## ##       ##       ##        ##  ##     ## ##       ##     ##
+// ########  ######   ##       ######    ##  ##     ## ######   ##     ##
+// ##   ##   ##       ##       ##        ##   ##   ##  ##       ##     ##
+// ##    ##  ##       ##    ## ##        ##    ## ##   ##       ##     ##
+// ##     ## ########  ######  ######## ####    ###    ######## ########
 //////////////////////////////////////////////////////////////////////////////////////////
 
 void messageReceived(String &topic, String &payload)
@@ -92,6 +99,13 @@ void messageReceived(String &topic, String &payload)
 
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
+//  ######  ######## ##    ## ########
+// ##    ## ##       ###   ## ##     ##
+// ##       ##       ####  ## ##     ##
+//  ######  ######   ## ## ## ##     ##
+//       ## ##       ##  #### ##     ##
+// ##    ## ##       ##   ### ##     ##
+//  ######  ######## ##    ## ########
 //////////////////////////////////////////////////////////////////////////////////////////
 
 void send_to_mqtt()
@@ -102,6 +116,13 @@ void send_to_mqtt()
 
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
+// ########     ###    ##      ##
+// ##     ##   ## ##   ##  ##  ##
+// ##     ##  ##   ##  ##  ##  ##
+// ########  ##     ## ##  ##  ##
+// ##   ##   ######### ##  ##  ##
+// ##    ##  ##     ## ##  ##  ##
+// ##     ## ##     ##  ###  ###
 //////////////////////////////////////////////////////////////////////////////////////////
 
 void send_raw_to_mqtt()
@@ -120,6 +141,13 @@ void send_raw_to_mqtt()
 
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
+// ########     ###    ##    ## ######## ##          ########     ###    ########    ###
+// ##     ##   ## ##   ###   ## ##       ##          ##     ##   ## ##      ##      ## ##
+// ##     ##  ##   ##  ####  ## ##       ##          ##     ##  ##   ##     ##     ##   ##
+// ########  ##     ## ## ## ## ######   ##          ##     ## ##     ##    ##    ##     ##
+// ##        ######### ##  #### ##       ##          ##     ## #########    ##    #########
+// ##        ##     ## ##   ### ##       ##          ##     ## ##     ##    ##    ##     ##
+// ##        ##     ## ##    ## ######## ########    ########  ##     ##    ##    ##     ##
 //////////////////////////////////////////////////////////////////////////////////////////
 
 void send_mqtt_panel_data()
@@ -171,11 +199,18 @@ void send_mqtt_panel_data()
     serializeJson(doc, mesaj);
     doc.clear();
 
-    client.publish(MQTT_PANEL_HW_TOPIC, mesaj, true, 0);
+    client.publish(MQTT_PANEL_HW_INFO_TOPIC, mesaj, true, 0);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
+// ########     ###    ##    ## ######## ##            #####
+// ##     ##   ## ##   ###   ## ##       ##           ##   ##
+// ##     ##  ##   ##  ####  ## ##       ##          ##     ##
+// ########  ##     ## ## ## ## ######   ##          ##     ##
+// ##        ######### ##  #### ##       ##          ##     ##
+// ##        ##     ## ##   ### ##       ##           ##   ##
+// ##        ##     ## ##    ## ######## ########      #####
 //////////////////////////////////////////////////////////////////////////////////////////
 
 void send_mqtt_panel0_data()
@@ -189,95 +224,112 @@ void send_mqtt_panel0_data()
 
     if (PS0[0] || PS0[1] || PS0[2] || PS0[3] || PS0[4]) // report only if events exist
     {
-        JsonArray trbl = doc.createNestedArray("trouble");
-
         // PANEL 0 BYTE 4
         if (bitRead(PS0[0], 7))
-            trbl.add("Timer loss");
+            doc.add("Timer loss");
         if (bitRead(PS0[0], 6))
-            trbl.add("Global Fire-Loop Trouble");
+            doc.add("Global Fire-Loop Trouble");
         if (bitRead(PS0[0], 5))
-            trbl.add("Global Module Tamper");
+            doc.add("Global Module Tamper");
         if (bitRead(PS0[0], 4))
-            trbl.add("Global Zone Tamper");
+            doc.add("Global Zone Tamper");
         if (bitRead(PS0[0], 3))
-            trbl.add("Global Communication Trouble");
+            doc.add("Global Communication Trouble");
         if (bitRead(PS0[0], 2))
-            trbl.add("Global Bell trouble");
+            doc.add("Global Bell trouble");
         if (bitRead(PS0[0], 1))
-            trbl.add("Global Power Trouble");
+            doc.add("Global Power Trouble");
         if (bitRead(PS0[0], 0))
-            trbl.add("Global RF Transmitter Low Battery");
+            doc.add("Global RF Transmitter Low Battery");
 
         // PANEL 0 BYTE 5
         if (bitRead(PS0[1], 7))
-            trbl.add("RF Interference");
+            doc.add("RF Interference");
         if (bitRead(PS0[1], 1))
-            trbl.add("Global Module Supervision");
+            doc.add("Global Module Supervision");
         if (bitRead(PS0[1], 0))
-            trbl.add("Global Zone Supervision");
+            doc.add("Global Zone Supervision");
 
         // PANEL 0 BYTE 6
         if (bitRead(PS0[2], 6))
-            trbl.add("Wireless Repeater Battery Failure");
+            doc.add("Wireless Repeater Battery Failure");
         if (bitRead(PS0[2], 5))
-            trbl.add("Wireless Repeater AC Loss");
+            doc.add("Wireless Repeater AC Loss");
         if (bitRead(PS0[2], 4))
-            trbl.add("Wireless Keypad Battery Failure");
+            doc.add("Wireless Keypad Battery Failure");
         if (bitRead(PS0[2], 3))
-            trbl.add("Wireless Keypad AC Loss");
+            doc.add("Wireless Keypad AC Loss");
         if (bitRead(PS0[2], 2))
-            trbl.add("Auxiliary Output Overload");
+            doc.add("Auxiliary Output Overload");
         if (bitRead(PS0[2], 1))
-            trbl.add("AC Failure");
+            doc.add("AC Failure");
         if (bitRead(PS0[2], 0))
-            trbl.add("No/Low Battery");
+            doc.add("No/Low Battery");
 
         // PANEL 0 BYTE 7
         if (bitRead(PS0[3], 1))
-            trbl.add("Bell Output Overload");
+            doc.add("Bell Output Overload");
         if (bitRead(PS0[3], 0))
-            trbl.add("Bell Output Disconnect");
+            doc.add("Bell Output Disconnect");
 
         // PANEL 0 BYTE 8
         if (bitRead(PS0[4], 5))
-            trbl.add("Computer Fail to Communicate");
+            doc.add("Computer Fail to Communicate");
         if (bitRead(PS0[4], 4))
-            trbl.add("Voice Fail to Communicate");
+            doc.add("Voice Fail to Communicate");
         if (bitRead(PS0[4], 3))
-            trbl.add("Pager Fail to Communicate");
+            doc.add("Pager Fail to Communicate");
         if (bitRead(PS0[4], 2))
-            trbl.add("Central 2 Reporting FTC");
+            doc.add("Central 2 Reporting FTC");
         if (bitRead(PS0[4], 1))
-            trbl.add("Central 1 Reporting FTC");
+            doc.add("Central 1 Reporting FTC");
         if (bitRead(PS0[4], 0))
-            trbl.add("Telephone Line Trouble");
+            doc.add("Telephone Line Trouble");
+
+        mesaj = "";
+        serializeJson(doc, mesaj);
+        doc.clear();
     }
+    else
+    {
+        mesaj = "none";
+    }
+
+    // SEND TROUBLE STATUS
+    client.publish(MQTT_PANEL_TROUBLE_TOPIC, mesaj, false, 0);
 
     if (PS0[15] || PS0[16] || PS0[17] || PS0[18]) // report only if events exist
     {
         // PANEL 0 BYTE 19-22
-        JsonArray open = doc.createNestedArray("open");
         for (i = 0; i < 4; i++)
         {
             for (b = 0; b < 8; b++)
             {
                 if (bitRead(PS0[15 + i], b))
-                    open.add("Zone " + String(i * 8 + b + 1));
+                    doc.add("Zone " + String(i * 8 + b + 1));
             }
         }
+        mesaj = "";
+        serializeJson(doc, mesaj);
+        doc.clear();
     }
+    else
+    {
+        mesaj = "none";
+    }
+
+    // SEND OPEN STATUS
+    client.publish(MQTT_PANEL_OPEN_TOPIC, mesaj, false, 0);
 
     if (PS0[19] || PS0[20] || PS0[21] || PS0[22] || PS0[23] || PS0[24] || PS0[25] || PS0[26]) // report only if events exist
     {
-        JsonArray tamp = doc.createNestedArray("tamper");
         // PANEL 0 BYTE 23-26
         for (i = 0; i < 4; i++)
         {
             for (b = 0; b < 8; b++)
             {
                 if (bitRead(PS0[19 + i], b))
-                    tamp.add("Zone " + String(i * 8 + b + 1));
+                    doc.add("Zone " + String(i * 8 + b + 1));
             }
         }
 
@@ -287,7 +339,7 @@ void send_mqtt_panel0_data()
             for (b = 0; b < 8; b++)
             {
                 if (bitRead(PS0[23 + i], b))
-                    tamp.add("PGM " + String(i * 8 + b + 1));
+                    doc.add("PGM " + String(i * 8 + b + 1));
             }
         }
 
@@ -297,43 +349,71 @@ void send_mqtt_panel0_data()
             for (b = 0; b < 8; b++)
             {
                 if (bitRead(PS0[25 + i], b))
-                    tamp.add("Bus Module " + String(i * 8 + b + 1));
+                    doc.add("Bus Module " + String(i * 8 + b + 1));
             }
         }
+
+        mesaj = "";
+        serializeJson(doc, mesaj);
+        doc.clear();
     }
+    else
+    {
+        mesaj = "none";
+    }
+
+    // SEND TAMPER STATUS
+    client.publish(MQTT_PANEL_TAMPER_TOPIC, mesaj, false, 0);
 
     if (PS0[27] || PS0[28] || PS0[29] || PS0[30]) // report only if events exist
     {
-        JsonArray fire = doc.createNestedArray("Fire-Loop");
         // PANEL 0 BYTE 31-34
         for (i = 0; i < 4; i++)
         {
             for (b = 0; b < 8; b++)
             {
                 if (bitRead(PS0[27 + i], b))
-                    fire.add("Zone " + String(i * 8 + b + 1));
+                    doc.add("Zone " + String(i * 8 + b + 1));
             }
         }
+
+        mesaj = "";
+        serializeJson(doc, mesaj);
+        doc.clear();
+    }
+    else
+    {
+        mesaj = "none";
     }
 
+    // SEND FIRE STATUS
+    client.publish(MQTT_PANEL_FIRE_TOPIC, mesaj, false, 0);
+
     // PANEL 0 BYTE 15
-    doc["levels"]["AC voltage"] = PS0[11];
+    doc["AC voltage"] = PS0[11];
     // PANEL 0 BYTE 16
-    doc["levels"]["DC voltage"] = PS0[12];
+    doc["DC voltage"] = PS0[12];
     // PANEL 0 BYTE 17
-    doc["levels"]["Battery voltage"] = PS0[13];
+    doc["Battery voltage"] = PS0[13];
     // PANEL 0 BYTE 18
-    doc["levels"]["RF Noise floor"] = PS0[14];
+    doc["RF Noise floor"] = PS0[14];
 
     mesaj = "";
     serializeJson(doc, mesaj);
     doc.clear();
 
-    client.publish(MQTT_PANEL_TOPIC + String(0), mesaj, true, 0);
+    client.publish(MQTT_PANEL_LEVELS_TOPIC, mesaj, false, 0);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
+// ########     ###    ##    ## ######## ##             ##
+// ##     ##   ## ##   ###   ## ##       ##           ####
+// ##     ##  ##   ##  ####  ## ##       ##             ##
+// ########  ##     ## ## ## ## ######   ##             ##
+// ##        ######### ##  #### ##       ##             ##
+// ##        ##     ## ##   ### ##       ##             ##
+// ##        ##     ## ##    ## ######## ########     ######
 //////////////////////////////////////////////////////////////////////////////////////////
 
 void send_mqtt_panel1_data()
@@ -347,7 +427,6 @@ void send_mqtt_panel1_data()
 
     if (PS1[13] || PS1[14] || PS1[15] || PS1[16]) // report only if events exist
     {
-        JsonArray p1s = doc.createNestedArray("Partition 1");
         // PANEL 1 BYTE 17-20
         for (i = 0; i < 4; i++)
         {
@@ -356,15 +435,20 @@ void send_mqtt_panel1_data()
                 if (bitRead(PS1[13 + i], b))
                 {
                     panel_1_partition_status_names(i, b); // loads mesaj with proper text
-                    p1s.add(mesaj);
+                    doc.add(mesaj);
                 }
             }
         }
+
+        mesaj = "";
+        serializeJson(doc, mesaj);
+        doc.clear();
+
+        client.publish(MQTT_PANEL_PARTITION_TOPIC + String(1), mesaj, false, 0);
     }
 
     if (PS1[17] || PS1[18] || PS1[19] || PS1[20]) // report only if events exist
     {
-        JsonArray p2s = doc.createNestedArray("Partition 2");
         // PANEL 1 BYTE 21-24
         for (i = 0; i < 4; i++)
         {
@@ -373,22 +457,27 @@ void send_mqtt_panel1_data()
                 if (bitRead(PS1[17 + i], b))
                 {
                     panel_1_partition_status_names(i, b); // loads mesaj with proper text
-                    p2s.add(mesaj);
+                    doc.add(mesaj);
                 }
             }
         }
+
+        mesaj = "";
+        serializeJson(doc, mesaj);
+        doc.clear();
+
+        client.publish(MQTT_PANEL_PARTITION_TOPIC + String(2), mesaj, false, 0);
     }
 
     if (PS1[0] || PS1[1] || PS1[2] || PS1[3] || PS1[4] || PS1[5] || PS1[6] || PS1[7] || PS1[8] || PS1[25]) // report only if events exist
     {
-        JsonArray rfst = doc.createNestedArray("RF Supervision Trouble");
         // PANEL 1 BYTE 4-7
         for (i = 0; i < 4; i++)
         {
             for (b = 0; b < 8; b++)
             {
                 if (bitRead(PS1[i], b))
-                    rfst.add("Zone " + String(i * 8 + b + 1));
+                    doc.add("Zone " + String(i * 8 + b + 1));
             }
         }
 
@@ -398,7 +487,7 @@ void send_mqtt_panel1_data()
             for (b = 0; b < 8; b++)
             {
                 if (bitRead(PS1[4 + i], b))
-                    rfst.add("PGM " + String(i * 8 + b + 1));
+                    doc.add("PGM " + String(i * 8 + b + 1));
             }
         }
 
@@ -408,7 +497,7 @@ void send_mqtt_panel1_data()
             for (b = 0; b < 8; b++)
             {
                 if (bitRead(PS1[6 + i], b))
-                    rfst.add("Bus Module " + String(i * 8 + b + 1));
+                    doc.add("Bus Module " + String(i * 8 + b + 1));
             }
         }
 
@@ -416,27 +505,37 @@ void send_mqtt_panel1_data()
         for (b = 0; b < 8; b++)
         {
             if (bitRead(PS1[8], b))
-                rfst.add("Wireless Repeater/Keyboard " + String(b + 1));
+                doc.add("Wireless Repeater/Keyboard " + String(b + 1));
         }
 
         // PANEL 1 BYTE 29
         for (b = 0; b < 8; b++)
         {
             if (bitRead(PS1[25], b))
-                rfst.add("Wireless Keypad " + String(b + 1));
+                doc.add("Wireless Keypad " + String(b + 1));
         }
+
+        mesaj = "";
+        serializeJson(doc, mesaj);
+        doc.clear();
     }
+    else
+    {
+        mesaj = "none";
+    }
+
+    // REPORT RF TROUBLE MESSAGE
+    client.publish(MQTT_PANEL_RF_TROUBLE_TOPIC, mesaj, false, 0);
 
     if (PS1[9] || PS1[10] || PS1[11] || PS1[12] || PS1[22] || PS1[24]) // report only if events exist
     {
-        JsonArray rflb = doc.createNestedArray("RF Low Battery");
         // PANEL 1 BYTE 13-16
         for (i = 0; i < 4; i++)
         {
             for (b = 0; b < 8; b++)
             {
                 if (bitRead(PS1[9 + i], b))
-                    rflb.add("Zone " + String(i * 8 + b + 1));
+                    doc.add("Zone " + String(i * 8 + b + 1));
             }
         }
 
@@ -444,44 +543,64 @@ void send_mqtt_panel1_data()
         for (b = 0; b < 8; b++)
         {
             if (bitRead(PS1[22], b))
-                rflb.add("Wireless Repeater " + String(b + 1));
+                doc.add("Wireless Repeater " + String(b + 1));
         }
 
         // PANEL 1 BYTE 28
         for (b = 0; b < 8; b++)
         {
             if (bitRead(PS1[24], b))
-                rflb.add("Wireless Keypad " + String(b + 1));
+                doc.add("Wireless Keypad " + String(b + 1));
         }
+
+        mesaj = "";
+        serializeJson(doc, mesaj);
+        doc.clear();
     }
+    else
+    {
+        mesaj = "none";
+    }
+
+    // REPORT RF LOW BATTERY MESSAGE
+    client.publish(MQTT_PANEL_RF_LOW_BATTERY_TOPIC, mesaj, false, 0);
 
     if (PS1[21] || PS1[23]) // report only if events exist
     {
-        JsonArray acls = doc.createNestedArray("AC lost");
         // PANEL 1 BYTE 25
         for (b = 0; b < 8; b++)
         {
             if (bitRead(PS1[21], b))
-                acls.add("Wireless Repeater " + String(b + 1));
+                doc.add("Wireless Repeater " + String(b + 1));
         }
 
         // PANEL 1 BYTE 27
         for (b = 0; b < 8; b++)
         {
             if (bitRead(PS1[23], b))
-                acls.add("Wireless Keypad " + String(b + 1));
+                doc.add("Wireless Keypad " + String(b + 1));
         }
+
+        mesaj = "";
+        serializeJson(doc, mesaj);
+        doc.clear();
     }
-
-    mesaj = "";
-    serializeJson(doc, mesaj);
-    doc.clear();
-
-    client.publish(MQTT_PANEL_TOPIC + String(1), mesaj, false, 0);
+    else
+    {
+        mesaj = "none";
+    }
+    client.publish(MQTT_PANEL_AC_LOST_TOPIC, mesaj, false, 0);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
+// ########     ###    ##    ## ######## ##           #######
+// ##     ##   ## ##   ###   ## ##       ##          ##     ##
+// ##     ##  ##   ##  ####  ## ##       ##                 ##
+// ########  ##     ## ## ## ## ######   ##           #######
+// ##        ######### ##  #### ##       ##          ##
+// ##        ##     ## ##   ### ##       ##          ##
+// ##        ##     ## ##    ## ######## ########    #########
 //////////////////////////////////////////////////////////////////////////////////////////
 
 void send_mqtt_panel2_data()
@@ -539,6 +658,17 @@ void send_mqtt_panel2_data()
     }
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+// ########     ###    ##    ## ######## ##           #######
+// ##     ##   ## ##   ###   ## ##       ##          ##     ##
+// ##     ##  ##   ##  ####  ## ##       ##                 ##
+// ########  ##     ## ## ## ## ######   ##           #######
+// ##        ######### ##  #### ##       ##                 ##
+// ##        ##     ## ##   ### ##       ##          ##     ##
+// ##        ##     ## ##    ## ######## ########     #######
+//////////////////////////////////////////////////////////////////////////////////////////
+
 void send_mqtt_panel3_data()
 {
     panel_status_3_read = false;
@@ -553,6 +683,17 @@ void send_mqtt_panel3_data()
         }
     }
 }
+
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+// ########     ###    ##    ## ######## ##          ##
+// ##     ##   ## ##   ###   ## ##       ##          ##    ##
+// ##     ##  ##   ##  ####  ## ##       ##          ##    ##
+// ########  ##     ## ## ## ## ######   ##          ##    ##
+// ##        ######### ##  #### ##       ##          #########
+// ##        ##     ## ##   ### ##       ##                ##
+// ##        ##     ## ##    ## ######## ########          ##
+//////////////////////////////////////////////////////////////////////////////////////////
 
 void send_mqtt_panel4_data()
 {
@@ -585,6 +726,17 @@ void send_mqtt_panel4_data()
     }
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+// ########     ###    ##    ## ######## ##          ########
+// ##     ##   ## ##   ###   ## ##       ##          ##
+// ##     ##  ##   ##  ####  ## ##       ##          ##
+// ########  ##     ## ## ## ## ######   ##          #######
+// ##        ######### ##  #### ##       ##                ##
+// ##        ##     ## ##   ### ##       ##          ##    ##
+// ##        ##     ## ##    ## ######## ########     ######
+//////////////////////////////////////////////////////////////////////////////////////////
+
 void send_mqtt_panel5_data()
 {
     panel_status_5_read = false;
@@ -597,7 +749,7 @@ void send_mqtt_panel5_data()
         for (b = 0; b < 8; b++)
         {
             if (bitRead(PS5[i], b))
-                client.publish(MQTT_ZONE_TOPIC + String(i * 8 + b + 1), "Exit Delay", false, 0);
+                client.publish(MQTT_ZONE_TOPIC + String(i * 8 + b + 1) + "/status", "Exit Delay", false, 0);
         }
     }
 }

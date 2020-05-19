@@ -349,23 +349,30 @@ void panel_command()
 
 void panel_set_time()
 {
-    struct tm *timeinfo;
-    uint8_t year = timeinfo->tm_year - 100;
+    // struct tm *timeinfo;
+    // uint8_t year = timeinfo->tm_year - 100;
 
-    clear_paradox_tx();
+    // clear_paradox_tx();
 
-    paradox_tx[0] = 0x30;
-    paradox_tx[4] = 20;
-    paradox_tx[5] = year;
-    paradox_tx[6] = timeinfo->tm_mon;
-    paradox_tx[7] = timeinfo->tm_mday;
-    paradox_tx[8] = timeinfo->tm_hour;
-    paradox_tx[9] = timeinfo->tm_min;
-    paradox_tx[33] = SourceID;
-    paradox_tx[34] = UserIDh;
-    paradox_tx[35] = UserIDl;
+    // paradox_tx[0] = 0x30;
+    // paradox_tx[4] = 20;
+    // paradox_tx[5] = year;
+    // paradox_tx[6] = timeinfo->tm_mon;
+    // paradox_tx[7] = timeinfo->tm_mday;
+    // paradox_tx[8] = timeinfo->tm_hour;
+    // paradox_tx[9] = timeinfo->tm_min;
+    // paradox_tx[33] = SourceID;
+    // paradox_tx[34] = UserIDh;
+    // paradox_tx[35] = UserIDl;
 
-    send_data();
+    // for (uint8_t i = 0; i < 37; i++)
+    // {
+    //     paradox_rx[i] = paradox_tx[i];
+
+    // }
+    // send_raw_to_mqtt();
+
+    // // send_data();
 
     panel_set_date_time = false;
 }

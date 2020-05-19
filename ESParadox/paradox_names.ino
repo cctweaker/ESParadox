@@ -5,13 +5,21 @@
 void prepare_event_json()
 {
     got_event = false;
-    got_mqtt_data = true;
+    // got_mqtt_data = true;
 
     StaticJsonDocument<1024> doc;
 
     uint8_t i = 0;
     uint8_t event = paradox_rx[7];
     uint8_t subgroup = paradox_rx[8];
+    bool is_zone = false;
+    bool is_partition = false;
+    bool is_bell = false;
+    bool is_module = false;
+    bool is_arm = false;
+    bool is_alarm = false;
+    bool is_trouble = false;
+
     mesaj = "";
 
     get_rx_date_time();
@@ -30,999 +38,995 @@ void prepare_event_json()
     switch (event)
     {
     case 0:
-        doc["event"] = "Zone OK";
-        // send closed status
-        client.publish(MQTT_ZONE_TOPIC + String(subgroup), "ok", true, 0);
+        mesaj = "Zone OK";
+        is_zone = true;
         break;
         ////////////////////////////////////////////
 
     case 1:
-        doc["event"] = "Zone open";
-        // send open status
-        client.publish(MQTT_ZONE_TOPIC + String(subgroup), "open", true, 0);
-        // save zone name
-        client.publish(MQTT_ZONE_TOPIC + String(subgroup) + "/label", mesaj, true, 0);
+        mesaj = "Zone open";
+        is_zone = true;
         break;
         ////////////////////////////////////////////
 
     case 2:
-        topic = MQTT_EVENT_TOPIC;
+        is_partition = true;
 
         switch (subgroup)
         {
         case 2:
-            doc["event"] = "Silent alarm";
+            mesaj = "Silent alarm";
             break;
             ///////////
         case 3:
-            doc["event"] = "Buzzer alarm";
+            mesaj = "Buzzer alarm";
             break;
             ///////////
         case 4:
-            doc["event"] = "Steady alarm";
+            mesaj = "Steady alarm";
             break;
             ///////////
         case 5:
-            doc["event"] = "Pulsed alarm";
+            mesaj = "Pulsed alarm";
             break;
             ///////////
         case 6:
-            doc["event"] = "Strobe";
+            mesaj = "Strobe";
             break;
             ///////////
         case 7:
-            doc["event"] = "Alarm stopped";
+            mesaj = "Alarm stopped";
             break;
             ///////////
         case 8:
-            doc["event"] = "Squawk ON";
+            mesaj = "Squawk ON";
             break;
             ///////////
         case 9:
-            doc["event"] = "Squawk OFF";
+            mesaj = "Squawk OFF";
             break;
             ///////////
         case 10:
-            doc["event"] = "Ground start";
+            mesaj = "Ground start";
             break;
             ///////////
         case 11:
-            doc["event"] = "Disarm partition";
+            mesaj = "Disarm partition";
             break;
             ///////////
         case 12:
-            doc["event"] = "Arm partition";
+            mesaj = "Arm partition";
             break;
             ///////////
         case 13:
-            doc["event"] = "Entry delay started";
+            mesaj = "Entry delay started";
             break;
             ///////////
         case 14:
-            doc["event"] = "Exit delay started";
+            mesaj = "Exit delay started";
             break;
             ///////////
         case 15:
-            doc["event"] = "Pre-alarm delay";
+            mesaj = "Pre-alarm delay";
             break;
             ///////////
         case 16:
-            doc["event"] = "Report confirmation";
+            mesaj = "Report confirmation";
             break;
             ///////////
         case 99:
-            doc["event"] = "Any partition status event";
+            mesaj = "Any partition status event";
             break;
         }
         break;
         ////////////////////////////////////////////
 
     case 3:
-        topic = MQTT_EVENT_TOPIC;
+        is_bell = true;
 
         switch (subgroup)
         {
         case 0:
-            doc["event"] = "Bell OFF";
+            mesaj = "Bell OFF";
             break;
             ///////////
         case 1:
-            doc["event"] = "Bell ON";
+            mesaj = "Bell ON";
             break;
             ///////////
         case 2:
-            doc["event"] = "Bell squawk arm";
+            mesaj = "Bell squawk arm";
             break;
             ///////////
         case 3:
-            doc["event"] = "Bell squawk disarm";
+            mesaj = "Bell squawk disarm";
             break;
             ///////////
         case 99:
-            doc["event"] = "Any bell status event";
+            mesaj = "Any bell status event";
             break;
         }
         break;
         ////////////////////////////////////////////
 
     case 6:
-        topic = MQTT_EVENT_TOPIC;
 
         switch (subgroup)
         {
         case 0:
-            doc["event"] = "Telephone line trouble";
+            mesaj = "Telephone line trouble";
             break;
             ///////////
         case 1:
-            doc["event"] = "ENTER + CLEAR + POWER pressed";
+            mesaj = "ENTER + CLEAR + POWER pressed";
             break;
             ///////////
         case 2:
-            doc["event"] = "N/A";
+            mesaj = "N/A";
             break;
             ///////////
         case 3:
-            doc["event"] = "Arm in stay mode";
+            mesaj = "Arm in stay mode";
             break;
             ///////////
         case 4:
-            doc["event"] = "Arm in sleep mode";
+            mesaj = "Arm in sleep mode";
             break;
             ///////////
         case 5:
-            doc["event"] = "Arm in force mode";
+            mesaj = "Arm in force mode";
             break;
             ///////////
         case 6:
-            doc["event"] = "Full arm when armed in stay mode";
+            mesaj = "Full arm when armed in stay mode";
             break;
             ///////////
         case 7:
-            doc["event"] = "PC fail to communicate";
+            mesaj = "PC fail to communicate";
             break;
             ///////////
         case 8:
-            doc["event"] = "Utility Key 1 pressed (1+2)";
+            mesaj = "Utility Key 1 pressed (1+2)";
             break;
             ///////////
         case 9:
-            doc["event"] = "Utility Key 2 pressed (4+5)";
+            mesaj = "Utility Key 2 pressed (4+5)";
             break;
             ///////////
         case 10:
-            doc["event"] = "Utility Key 3 pressed (7+8)";
+            mesaj = "Utility Key 3 pressed (7+8)";
             break;
             ///////////
         case 11:
-            doc["event"] = "Utility Key 4 pressed (2+3)";
+            mesaj = "Utility Key 4 pressed (2+3)";
             break;
             ///////////
         case 12:
-            doc["event"] = "Utility Key 5 pressed (5+6)";
+            mesaj = "Utility Key 5 pressed (5+6)";
             break;
             ///////////
         case 13:
-            doc["event"] = "Utility Key 6 pressed (8+9)";
+            mesaj = "Utility Key 6 pressed (8+9)";
             break;
             ///////////
         case 14:
-            doc["event"] = "Tamper generated alarm";
+            mesaj = "Tamper generated alarm";
             break;
             ///////////
         case 15:
-            doc["event"] = "Supervision loss generated alarm";
+            mesaj = "Supervision loss generated alarm";
             break;
             ///////////
         case 20:
-            doc["event"] = "Full arm when armed in sleep mode";
+            mesaj = "Full arm when armed in sleep mode";
             break;
             ///////////
         case 21:
-            doc["event"] = "Firmware upgrade";
+            mesaj = "Firmware upgrade";
             break;
             ///////////
         case 23:
-            doc["event"] = "StayD mode activated";
+            mesaj = "StayD mode activated";
             break;
             ///////////
         case 24:
-            doc["event"] = "StayD mode deactivated";
+            mesaj = "StayD mode deactivated";
             break;
             ///////////
         case 25:
-            doc["event"] = "IP Registration status change";
+            mesaj = "IP Registration status change";
             break;
             ///////////
         case 26:
-            doc["event"] = "GPRS Registration status change";
+            mesaj = "GPRS Registration status change";
             break;
             ///////////
         case 99:
-            doc["event"] = "Any non-reportable event";
+            mesaj = "Any non-reportable event";
             break;
         }
         break;
         ////////////////////////////////////////////
 
     case 8:
-        topic = MQTT_EVENT_TOPIC;
-        doc["event"] = "Remote " + String(subgroup) + "button B";
+        mesaj = "Remote " + String(subgroup) + ", pressed button B";
         break;
         ////////////////////////////////////////////
 
     case 9:
-        topic = MQTT_EVENT_TOPIC;
-        doc["event"] = "Remote " + String(subgroup) + "button C";
+        mesaj = "Remote " + String(subgroup) + ", pressed button C";
         break;
         ////////////////////////////////////////////
 
     case 10:
-        topic = MQTT_EVENT_TOPIC;
-        doc["event"] = "Remote " + String(subgroup) + "button D";
+        mesaj = "Remote " + String(subgroup) + ", pressed button D";
         break;
         ////////////////////////////////////////////
 
     case 11:
-        topic = MQTT_EVENT_TOPIC;
-        doc["event"] = "Remote " + String(subgroup) + "button E";
+        mesaj = "Remote " + String(subgroup) + ", pressed button E";
         break;
         ////////////////////////////////////////////
 
     case 12:
-        topic = MQTT_ZONE_TOPIC;
-        topic += String(subgroup);
-        doc["event"] = "Cold start wireless zone";
+        is_zone = true;
+        mesaj = "Cold start wireless zone";
         break;
         ////////////////////////////////////////////
 
     case 13:
-        topic = MQTT_EVENT_TOPIC;
-        doc["event"] = "Cold start wireless module " + String(subgroup);
+        is_module = true;
+        mesaj = "Cold start wireless module " + String(subgroup);
         break;
         ////////////////////////////////////////////
 
     case 14:
-        topic = MQTT_EVENT_TOPIC;
-        doc["event"] = "Bypass programming user " + String(subgroup);
+        mesaj = "Bypass programming user " + String(subgroup);
         break;
         ////////////////////////////////////////////
 
     case 15:
-        topic = MQTT_EVENT_TOPIC;
-        doc["event"] = "User " + String(subgroup) + " code activated output";
+        mesaj = "User " + String(subgroup) + " code activated output";
         break;
         ////////////////////////////////////////////
 
     case 16:
-        topic = MQTT_ZONE_TOPIC;
-        topic += String(subgroup);
-        doc["event"] = "Wireless smoke maintenance signal";
+        is_zone = true;
+        mesaj = "Wireless smoke maintenance signal";
         break;
         ////////////////////////////////////////////
 
     case 17:
-        topic = MQTT_ZONE_TOPIC;
-        topic += String(subgroup);
-        doc["event"] = "Delay zone alarm transmission";
+        is_zone = true;
+        mesaj = "Delay zone alarm transmission";
         break;
         ////////////////////////////////////////////
 
     case 18:
-        topic = MQTT_ZONE_TOPIC;
-        topic += String(subgroup);
-        doc["event"] = "Zone sognal strength weak 1";
+        is_zone = true;
+        mesaj = "Zone signal strength weak 1";
         break;
         ////////////////////////////////////////////
 
     case 19:
-        topic = MQTT_ZONE_TOPIC;
-        topic += String(subgroup);
-        doc["event"] = "Zone sognal strength weak 2";
+        is_zone = true;
+        mesaj = "Zone signal strength weak 2";
         break;
         ////////////////////////////////////////////
 
     case 20:
-        topic = MQTT_ZONE_TOPIC;
-        topic += String(subgroup);
-        doc["event"] = "Zone sognal strength weak 3";
+        is_zone = true;
+        mesaj = "Zone signal strength weak 3";
         break;
         ////////////////////////////////////////////
 
     case 21:
-        topic = MQTT_ZONE_TOPIC;
-        topic += String(subgroup);
-        doc["event"] = "Zone sognal strength weak 4";
+        is_zone = true;
+        mesaj = "Zone signal strength weak 4";
         break;
         ////////////////////////////////////////////
 
     case 22:
-        topic = MQTT_EVENT_TOPIC;
-        doc["event"] = "Remote " + String(subgroup) + "button option 5";
+        mesaj = "Remote " + String(subgroup) + ", button option 5";
         break;
         ////////////////////////////////////////////
 
     case 23:
-        topic = MQTT_EVENT_TOPIC;
-        doc["event"] = "Remote " + String(subgroup) + "button option 6";
+        mesaj = "Remote " + String(subgroup) + ", button option 6";
         break;
         ////////////////////////////////////////////
 
     case 24:
-        topic = MQTT_ZONE_TOPIC;
-        topic += String(subgroup);
-        doc["event"] = "Fire Delay started";
+        is_zone = true;
+        mesaj = "Fire Delay started";
         break;
         ////////////////////////////////////////////
 
     case 26:
-        topic = MQTT_EVENT_TOPIC;
-
         switch (subgroup)
         {
             ///////////
         case 1:
-            doc["event"] = "Software Access: WinLoad/Babyware direct";
+            mesaj = "Software Access: WinLoad/Babyware direct";
             break;
             ///////////
         case 2:
-            doc["event"] = "Software Access: WinLoad/Babyware IP module";
+            mesaj = "Software Access: WinLoad/Babyware IP module";
             break;
             ///////////
         case 3:
-            doc["event"] = "Software Access: WinLoad/Babyware GSM module";
+            mesaj = "Software Access: WinLoad/Babyware GSM module";
             break;
             ///////////
         case 4:
-            doc["event"] = "Software Access: WinLoad/Babyware modem";
+            mesaj = "Software Access: WinLoad/Babyware modem";
             break;
             ///////////
         case 9:
-            doc["event"] = "Software Access: IP100 direct";
+            mesaj = "Software Access: IP100 direct";
             break;
             ///////////
         case 10:
-            doc["event"] = "Software Access: VDMP3 direct";
+            mesaj = "Software Access: VDMP3 direct";
             break;
             ///////////
         case 11:
-            doc["event"] = "Software Access: Voice through GSM module";
+            mesaj = "Software Access: Voice through GSM module";
             break;
             ///////////
         case 12:
-            doc["event"] = "Software Access: Remote access";
+            mesaj = "Software Access: Remote access";
             break;
             ///////////
         case 13:
-            doc["event"] = "Software Access: SMS through GSM module";
+            mesaj = "Software Access: SMS through GSM module";
             break;
             ///////////
         case 99:
-            doc["event"] = "Software Access: Any software access";
+            mesaj = "Software Access: Any software access";
             break;
         }
         break;
         ////////////////////////////////////////////
 
     case 27:
-        topic = MQTT_EVENT_TOPIC;
-
         switch (subgroup)
         {
             ///////////
         case 0:
-            doc["event"] = "A bus module was added";
+            mesaj = "A bus module was added";
             break;
             ///////////
         case 1:
-            doc["event"] = "A bus module was removed";
+            mesaj = "A bus module was removed";
             break;
             ///////////
         case 2:
-            doc["event"] = "2-way RF Module Communication Failure";
+            mesaj = "2-way RF Module Communication Failure";
             break;
             ///////////
         case 3:
-            doc["event"] = "2-way RF Module Communication Restored";
+            mesaj = "2-way RF Module Communication Restored";
             break;
         }
         break;
         ////////////////////////////////////////////
 
     case 28:
-        topic = MQTT_ZONE_TOPIC;
-        topic += String(subgroup);
-        doc["event"] = "StayD pass acknowledged";
+        is_zone = true;
+        mesaj = "StayD pass acknowledged";
         break;
         ////////////////////////////////////////////
 
     case 29:
-        topic = MQTT_EVENT_TOPIC;
-        doc["event"] = "Arming with user " + String(subgroup);
+        is_arm = true;
+        mesaj = "Arming with user " + String(subgroup);
         break;
         ////////////////////////////////////////////
 
     case 30:
-        topic = MQTT_EVENT_TOPIC;
+        is_arm = true;
 
         switch (subgroup)
         {
             ///////////
         case 0:
-            doc["event"] = "Auto-arming (on time/no movement)";
+            mesaj = "Auto-arming (on time/no movement)";
             break;
             ///////////
         case 1:
-            doc["event"] = "Late to close";
+            mesaj = "Late to close";
             break;
             ///////////
         case 2:
-            doc["event"] = "No movement arming";
+            mesaj = "No movement arming";
             break;
             ///////////
         case 3:
-            doc["event"] = "Partial arming";
+            mesaj = "Partial arming";
             break;
         ///////////
         case 4:
-            doc["event"] = "Quick arming";
+            mesaj = "Quick arming";
             break;
         ///////////
         case 5:
-            doc["event"] = "Arming through WinLoad / BabyWare";
+            mesaj = "Arming through WinLoad / BabyWare";
             break;
         ///////////
         case 6:
-            doc["event"] = "Arming with keyswitch";
+            mesaj = "Arming with keyswitch";
             break;
             ///////////
         case 99:
-            doc["event"] = "Any special arming";
+            mesaj = "Any special arming";
             break;
         }
         break;
         ////////////////////////////////////////////
 
     case 31:
-        topic = MQTT_EVENT_TOPIC;
-        doc["event"] = "Disarming with user " + String(subgroup);
+        is_arm = true;
+        mesaj = "Disarming with user " + String(subgroup);
         break;
         ////////////////////////////////////////////
 
     case 32:
-        topic = MQTT_EVENT_TOPIC;
-        doc["event"] = "Disarming after alarm with user " + String(subgroup);
+        is_arm = true;
+        mesaj = "Disarming after alarm with user " + String(subgroup);
         break;
         ////////////////////////////////////////////
 
     case 33:
-        topic = MQTT_EVENT_TOPIC;
-        doc["event"] = "Alarm cancelled with user " + String(subgroup);
+        is_arm = true;
+        mesaj = "Alarm cancelled with user " + String(subgroup);
         break;
         ////////////////////////////////////////////
 
     case 34:
-        topic = MQTT_EVENT_TOPIC;
+        is_arm = true;
 
         switch (subgroup)
         {
             ///////////
         case 0:
-            doc["event"] = "Auto-arm cancelled (on time/no movement)";
+            mesaj = "Auto-arm cancelled (on time/no movement)";
             break;
             ///////////
         case 1:
-            doc["event"] = "Disarming through WinLoad / BabyWare";
+            mesaj = "Disarming through WinLoad / BabyWare";
             break;
             ///////////
         case 2:
-            doc["event"] = "Disarming through WinLoad / BabyWare after alarm";
+            mesaj = "Disarming through WinLoad / BabyWare after alarm";
             break;
             ///////////
         case 3:
-            doc["event"] = "Alarm cancelled through WinLoad / BabyWare";
+            mesaj = "Alarm cancelled through WinLoad / BabyWare";
             break;
         ///////////
         case 4:
-            doc["event"] = "Paramedical alarm cancelled";
+            mesaj = "Paramedical alarm cancelled";
             break;
         ///////////
         case 5:
-            doc["event"] = "Disarm with keyswitch";
+            mesaj = "Disarm with keyswitch";
             break;
         ///////////
         case 6:
-            doc["event"] = "Disarm with keyswitch after an alarm";
+            mesaj = "Disarm with keyswitch after an alarm";
             break;
         ///////////
         case 7:
-            doc["event"] = "Alarm cancelled with keyswitch";
+            mesaj = "Alarm cancelled with keyswitch";
             break;
             ///////////
         case 99:
-            doc["event"] = "Any special disarming";
+            mesaj = "Any special disarming";
             break;
         }
         break;
         ////////////////////////////////////////////
 
     case 35:
-        topic = MQTT_ZONE_TOPIC;
-        topic += String(subgroup);
-        doc["event"] = "Zone bypassed";
+        is_zone = true;
+        mesaj = "Zone bypassed";
         break;
         ////////////////////////////////////////////
 
     case 36:
-        topic = MQTT_ZONE_TOPIC;
-        topic += String(subgroup);
-        doc["event"] = "Zone in alarm";
+        is_zone = true;
+        mesaj = "Zone in alarm";
         break;
         ////////////////////////////////////////////
 
     case 37:
-        topic = MQTT_ZONE_TOPIC;
-        topic += String(subgroup);
-        doc["event"] = "Fire alarm";
+        is_zone = true;
+        mesaj = "Fire alarm";
         break;
         ////////////////////////////////////////////
 
     case 38:
-        topic = MQTT_ZONE_TOPIC;
-        topic += String(subgroup);
-        doc["event"] = "Zone alarm restore";
+        is_zone = true;
+        mesaj = "Zone alarm restore";
         break;
         ////////////////////////////////////////////
 
     case 39:
-        topic = MQTT_ZONE_TOPIC;
-        topic += String(subgroup);
-        doc["event"] = "Fire alarm restore";
+        is_zone = true;
+        mesaj = "Fire alarm restore";
         break;
         ////////////////////////////////////////////
 
     case 40:
-        topic = MQTT_EVENT_TOPIC;
+        is_alarm = true;
 
         switch (subgroup)
         {
             ///////////
         case 0:
-            doc["event"] = "Panic non-medical emergency";
+            mesaj = "Panic non-medical emergency";
             break;
             ///////////
         case 1:
-            doc["event"] = "Panic medical";
+            mesaj = "Panic medical";
             break;
             ///////////
         case 2:
-            doc["event"] = "Panic fire";
+            mesaj = "Panic fire";
             break;
             ///////////
         case 3:
-            doc["event"] = "Recent closing";
+            mesaj = "Recent closing";
             break;
         ///////////
         case 4:
-            doc["event"] = "Global shutdown";
+            mesaj = "Global shutdown";
             break;
         ///////////
         case 5:
-            doc["event"] = "Duress alarm";
+            mesaj = "Duress alarm";
             break;
         ///////////
         case 6:
-            doc["event"] = "Keyboard lockout";
+            mesaj = "Keyboard lockout";
             break;
             ///////////
         case 99:
-            doc["event"] = "Any special alarm event";
+            mesaj = "Any special alarm event";
             break;
         }
         break;
         ////////////////////////////////////////////
 
     case 41:
-        topic = MQTT_ZONE_TOPIC;
-        topic += String(subgroup);
-        doc["event"] = "Zone shutdown";
+        is_zone = true;
+        mesaj = "Zone shutdown";
         break;
         ////////////////////////////////////////////
 
     case 42:
-        topic = MQTT_ZONE_TOPIC;
-        topic += String(subgroup);
-        doc["event"] = "Zone tampered";
+        is_zone = true;
+        mesaj = "Zone tampered";
         break;
         ////////////////////////////////////////////
 
     case 43:
-        topic = MQTT_ZONE_TOPIC;
-        topic += String(subgroup);
-        doc["event"] = "Zone tamper restore";
+        is_zone = true;
+        mesaj = "Zone tamper restore";
         break;
         ////////////////////////////////////////////
 
     case 44:
-        topic = MQTT_TROUBLE_TOPIC;
+        is_trouble = true;
 
         switch (subgroup)
         {
         case 1:
-            doc["event"] = "AC failure";
+            mesaj = "AC failure";
             break;
             ///////////
         case 2:
-            doc["event"] = "Battery failure";
+            mesaj = "Battery failure";
             break;
             ///////////
         case 3:
-            doc["event"] = "Auxiliary current overload";
+            mesaj = "Auxiliary current overload";
             break;
             ///////////
         case 4:
-            doc["event"] = "Bell current overload";
+            mesaj = "Bell current overload";
             break;
         ///////////
         case 5:
-            doc["event"] = "Bell disconnected";
+            mesaj = "Bell disconnected";
             break;
         ///////////
         case 6:
-            doc["event"] = "Clock loss";
+            mesaj = "Clock loss";
             break;
         ///////////
         case 7:
-            doc["event"] = "Fire loop trouble";
+            mesaj = "Fire loop trouble";
             break;
         ///////////
         case 8:
-            doc["event"] = "Fail to communicate to monitoring station telephone #1";
+            mesaj = "Fail to communicate to monitoring station telephone #1";
             break;
         ///////////
         case 9:
-            doc["event"] = "Fail to communicate to monitoring station telephone #2";
+            mesaj = "Fail to communicate to monitoring station telephone #2";
             break;
         ///////////
         case 11:
-            doc["event"] = "Fail to communicate to voice report";
+            mesaj = "Fail to communicate to voice report";
             break;
         ///////////
         case 12:
-            doc["event"] = "RF jamming";
+            mesaj = "RF jamming";
             break;
         ///////////
         case 13:
-            doc["event"] = "GSM RF jamming";
+            mesaj = "GSM RF jamming";
             break;
         ///////////
         case 14:
-            doc["event"] = "GSM no service";
+            mesaj = "GSM no service";
             break;
         ///////////
         case 15:
-            doc["event"] = "GSM supervision lost";
+            mesaj = "GSM supervision lost";
             break;
         ///////////
         case 16:
-            doc["event"] = "Fail To Communicate IP Receiver 1 (GPRS)";
+            mesaj = "Fail To Communicate IP Receiver 1 (GPRS)";
             break;
         ///////////
         case 17:
-            doc["event"] = "Fail To Communicate IP Receiver 2 (GPRS)";
+            mesaj = "Fail To Communicate IP Receiver 2 (GPRS)";
             break;
         ///////////
         case 18:
-            doc["event"] = "IP Module No Service";
+            mesaj = "IP Module No Service";
             break;
         ///////////
         case 19:
-            doc["event"] = "IP Module Supervision Loss";
+            mesaj = "IP Module Supervision Loss";
             break;
         ///////////
         case 20:
-            doc["event"] = "Fail To Communicate IP Receiver 1 (IP)";
+            mesaj = "Fail To Communicate IP Receiver 1 (IP)";
             break;
         ///////////
         case 21:
-            doc["event"] = "Fail To Communicate IP Receiver 2 (IP)";
+            mesaj = "Fail To Communicate IP Receiver 2 (IP)";
             break;
             ///////////
         case 99:
-            doc["event"] = "Any new trouble event";
+            mesaj = "Any new trouble event";
             break;
         }
         break;
         ////////////////////////////////////////////
 
     case 45:
-        topic = MQTT_TROUBLE_TOPIC;
+        is_trouble = true;
 
         switch (subgroup)
         {
         case 0:
-            doc["event"] = "Telephone line restored";
+            mesaj = "Telephone line restored";
             break;
             ///////////
         case 1:
-            doc["event"] = "AC failure restore";
+            mesaj = "AC failure restore";
             break;
             ///////////
         case 2:
-            doc["event"] = "Battery failure restore";
+            mesaj = "Battery failure restore";
             break;
             ///////////
         case 3:
-            doc["event"] = "Auxiliary current overload restore";
+            mesaj = "Auxiliary current overload restore";
             break;
             ///////////
         case 4:
-            doc["event"] = "Bell current overload restore";
+            mesaj = "Bell current overload restore";
             break;
         ///////////
         case 5:
-            doc["event"] = "Bell disconnected restore";
+            mesaj = "Bell disconnected restore";
             break;
         ///////////
         case 6:
-            doc["event"] = "Clock loss restore";
+            mesaj = "Clock loss restore";
             break;
         ///////////
         case 7:
-            doc["event"] = "Fire loop trouble restore";
+            mesaj = "Fire loop trouble restore";
             break;
         ///////////
         case 8:
-            doc["event"] = "Fail to communicate to monitoring station telephone #1 restore";
+            mesaj = "Fail to communicate to monitoring station telephone #1 restore";
             break;
         ///////////
         case 9:
-            doc["event"] = "Fail to communicate to monitoring station telephone #2 restore";
+            mesaj = "Fail to communicate to monitoring station telephone #2 restore";
             break;
         ///////////
         case 11:
-            doc["event"] = "Fail to communicate to voice report restore";
+            mesaj = "Fail to communicate to voice report restore";
             break;
         ///////////
         case 12:
-            doc["event"] = "RF jamming restore";
+            mesaj = "RF jamming restore";
             break;
         ///////////
         case 13:
-            doc["event"] = "GSM RF jamming restore";
+            mesaj = "GSM RF jamming restore";
             break;
         ///////////
         case 14:
-            doc["event"] = "GSM no service restore";
+            mesaj = "GSM no service restore";
             break;
         ///////////
         case 15:
-            doc["event"] = "GSM supervision lost restore";
+            mesaj = "GSM supervision lost restore";
             break;
         ///////////
         case 16:
-            doc["event"] = "Fail To Communicate restore IP Receiver 1 (GPRS)";
+            mesaj = "Fail To Communicate restore IP Receiver 1 (GPRS)";
             break;
         ///////////
         case 17:
-            doc["event"] = "Fail To Communicate restore IP Receiver 2 (GPRS)";
+            mesaj = "Fail To Communicate restore IP Receiver 2 (GPRS)";
             break;
         ///////////
         case 18:
-            doc["event"] = "IP Module No Service restore";
+            mesaj = "IP Module No Service restore";
             break;
         ///////////
         case 19:
-            doc["event"] = "IP Module Supervision Loss restore";
+            mesaj = "IP Module Supervision Loss restore";
             break;
         ///////////
         case 20:
-            doc["event"] = "Fail To Communicate restore IP Receiver 1 (IP)";
+            mesaj = "Fail To Communicate restore IP Receiver 1 (IP)";
             break;
         ///////////
         case 21:
-            doc["event"] = "Fail To Communicate restore IP Receiver 2 (IP)";
+            mesaj = "Fail To Communicate restore IP Receiver 2 (IP)";
             break;
             ///////////
         case 99:
-            doc["event"] = "Any new trouble restored event";
+            mesaj = "Any new trouble restored event";
             break;
         }
         break;
         ////////////////////////////////////////////
 
     case 46:
-        topic = MQTT_EVENT_TOPIC;
+        is_trouble = true;
 
         switch (subgroup)
         {
             ///////////
         case 0:
-            doc["event"] = "Bus module communication fault";
+            mesaj = "Bus module communication fault";
             break;
             ///////////
         case 1:
-            doc["event"] = "Bus module tamper trouble";
+            mesaj = "Bus module tamper trouble";
             break;
             ///////////
         case 2:
-            doc["event"] = "Bus module power fail";
+            mesaj = "Bus module power fail";
             break;
             ///////////
         case 3:
-            doc["event"] = "Bus module battery failure";
+            mesaj = "Bus module battery failure";
             break;
             ///////////
         case 99:
-            doc["event"] = "Any bus module trouble event";
+            mesaj = "Any bus module trouble event";
             break;
         }
         break;
         ////////////////////////////////////////////
 
     case 47:
-        topic = MQTT_EVENT_TOPIC;
+        is_trouble = true;
 
         switch (subgroup)
         {
             ///////////
         case 0:
-            doc["event"] = "Bus module communication fault restore";
+            mesaj = "Bus module communication fault restore";
             break;
             ///////////
         case 1:
-            doc["event"] = "Bus module tamper trouble restore";
+            mesaj = "Bus module tamper trouble restore";
             break;
             ///////////
         case 2:
-            doc["event"] = "Bus module power fail restore";
+            mesaj = "Bus module power fail restore";
             break;
             ///////////
         case 3:
-            doc["event"] = "Bus module battery failure restore";
+            mesaj = "Bus module battery failure restore";
             break;
             ///////////
         case 99:
-            doc["event"] = "Any bus module trouble restored event";
+            mesaj = "Any bus module trouble restored event";
             break;
         }
         break;
         ////////////////////////////////////////////
 
     case 48:
-        topic = MQTT_EVENT_TOPIC;
-
         switch (subgroup)
         {
             ///////////
         case 0:
-            doc["event"] = "System power up";
+            mesaj = "System power up";
             break;
             ///////////
         case 1:
-            doc["event"] = "Reporting test";
+            mesaj = "Reporting test";
             break;
             ///////////
         case 2:
-            doc["event"] = "Software log on";
+            mesaj = "Software log on";
             break;
             ///////////
         case 3:
-            doc["event"] = "Software log off";
+            mesaj = "Software log off";
             break;
             ///////////
         case 4:
-            doc["event"] = "Installer in programming mode";
+            mesaj = "Installer in programming mode";
             break;
             ///////////
         case 5:
-            doc["event"] = "Installer exited programming mode";
+            mesaj = "Installer exited programming mode";
             break;
             ///////////
         case 6:
-            doc["event"] = "Maintenance in programming mode";
+            mesaj = "Maintenance in programming mode";
             break;
             ///////////
         case 7:
-            doc["event"] = "Maintenance exited programming mode";
+            mesaj = "Maintenance exited programming mode";
             break;
             ///////////
         case 8:
-            doc["event"] = "Closing delinquency delay elapsed";
+            mesaj = "Closing delinquency delay elapsed";
             break;
             ///////////
         case 99:
-            doc["event"] = "Any special event";
+            mesaj = "Any special event";
             break;
         }
         break;
         ////////////////////////////////////////////
 
     case 49:
-        topic = MQTT_ZONE_TOPIC;
-        topic += String(subgroup);
-        doc["event"] = "Low battery on zone";
+        is_zone = true;
+        mesaj = "Low battery on zone";
         break;
         ////////////////////////////////////////////
 
     case 50:
-        topic = MQTT_ZONE_TOPIC;
-        topic += String(subgroup);
-        doc["event"] = "Low battery on zone restore";
+        is_zone = true;
+        mesaj = "Low battery on zone restore";
         break;
         ////////////////////////////////////////////
 
     case 51:
-        topic = MQTT_ZONE_TOPIC;
-        topic += String(subgroup);
-        doc["event"] = "Zone supervision trouble";
+        is_zone = true;
+        mesaj = "Zone supervision trouble";
         break;
         ////////////////////////////////////////////
 
     case 52:
-        topic = MQTT_ZONE_TOPIC;
-        topic += String(subgroup);
-        doc["event"] = "Zone supervision restore";
+        is_zone = true;
+        mesaj = "Zone supervision restore";
         break;
         ////////////////////////////////////////////
 
     case 53:
-        topic = MQTT_EVENT_TOPIC;
-        doc["event"] = "Wireless module " + String(subgroup) + " supervision trouble";
+        is_module = true;
+        mesaj = "Wireless module " + String(subgroup) + " supervision trouble";
         break;
         ////////////////////////////////////////////
 
     case 54:
-        topic = MQTT_EVENT_TOPIC;
-        doc["event"] = "Wireless module " + String(subgroup) + " supervision restore";
+        is_module = true;
+        mesaj = "Wireless module " + String(subgroup) + " supervision restore";
         break;
         ////////////////////////////////////////////
 
     case 55:
-        topic = MQTT_EVENT_TOPIC;
-        doc["event"] = "Wireless module " + String(subgroup) + " tamper trouble";
+        is_module = true;
+        mesaj = "Wireless module " + String(subgroup) + " tamper trouble";
         break;
         ////////////////////////////////////////////
 
     case 56:
-        topic = MQTT_EVENT_TOPIC;
-        doc["event"] = "Wireless module " + String(subgroup) + " tamper restore";
+        is_module = true;
+        mesaj = "Wireless module " + String(subgroup) + " tamper restore";
         break;
         ////////////////////////////////////////////
 
     case 57:
-        topic = MQTT_EVENT_TOPIC;
-        doc["event"] = "Non-medical alarm (paramedic) user " + String(subgroup);
+        is_alarm = true;
+        mesaj = "Non-medical alarm (paramedic) user " + String(subgroup);
         break;
         ////////////////////////////////////////////
 
     case 58:
-        topic = MQTT_ZONE_TOPIC;
-        topic += String(subgroup);
-        doc["event"] = "Zone forced";
+        is_zone = true;
+        mesaj = "Zone forced";
         break;
         ////////////////////////////////////////////
 
     case 59:
-        topic = MQTT_ZONE_TOPIC;
-        topic += String(subgroup);
-        doc["event"] = "Zone included";
+        is_zone = true;
+        mesaj = "Zone included";
         break;
         ////////////////////////////////////////////
 
     case 64:
-        topic = MQTT_EVENT_TOPIC;
-        doc["event"] = "System Status " + String(subgroup);
+        mesaj = "System Status " + String(subgroup);
         break;
 
     default:
-        topic = MQTT_EVENT_TOPIC;
-        doc["event"] = "Undocumented";
+        mesaj = "Undocumented";
+    }
+
+    doc["event"] = mesaj;
+
+    if (is_zone)
+    {
+        client.publish(MQTT_ZONE_TOPIC + String(subgroup), mesaj, true, 0);
+        client.publish(MQTT_ZONE_TOPIC + String(subgroup) + "/label", doc["label"], true, 0);
+        client.publish(MQTT_ZONE_TOPIC + String(subgroup) + "/sn", doc["sn#"], true, 0);
+    }
+
+    if (is_partition)
+    {
+        client.publish(MQTT_PARTITION_TOPIC + String(paradox_rx[9]), mesaj, true, 0);
+    }
+
+    if (is_bell)
+    {
+        client.publish(MQTT_BELL_TOPIC, mesaj, true, 0);
+    }
+
+    if (is_module)
+    {
+        client.publish(MQTT_BUS_TOPIC + String(subgroup), mesaj, true, 0);
+    }
+
+    if (is_arm)
+    {
+        client.publish(MQTT_ARM_TOPIC, mesaj, true, 0);
+    }
+
+    if (is_alarm)
+    {
+        client.publish(MQTT_ALARM_TOPIC, mesaj, true, 0);
+    }
+
+    if (is_trouble)
+    {
+        client.publish(MQTT_TROUBLE_TOPIC, mesaj, true, 0);
     }
 
     mesaj = "";
     serializeJson(doc, mesaj);
     doc.clear();
+    client.publish(MQTT_EVENT_TOPIC, mesaj, true, 0);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1201,22 +1205,6 @@ void panel_1_partition_status_names(uint8_t byte, uint8_t bit)
         }
         break;
     }
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////
-
-void panel_2_zone_status_names_double(uint8_t bit5, uint8_t bit4)
-{
-    if (bit5 && bit4)
-        mesaj = "In Fire Delay";
-    if (!bit5 && bit4)
-        mesaj = "In Entry Delay";
-    if (bit5 && !bit4)
-        mesaj = "In Intellizone Delay";
-    if (!bit5 && !bit4)
-        mesaj = "In No Delay";
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
