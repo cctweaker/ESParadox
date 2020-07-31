@@ -1,148 +1,92 @@
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+// ##        #######   #######  ########
+// ##       ##     ## ##     ## ##     ##
+// ##       ##     ## ##     ## ##     ##
+// ##       ##     ## ##     ## ########
+// ##       ##     ## ##     ## ##
+// ##       ##     ## ##     ## ##
+// ########  #######   #######  ##
+
 void mqtt_loop()
 {
-    if (SIA)
-        send_SIA_status();
+    mqtt_send_SIA();
 
-    if (panel_status_0_read)
-        send_mqtt_panel0_data();
+    if (pdx_panel_data_login)
+        mqtt_send_panel_info();
 
-    if (panel_status_1_read)
-        send_mqtt_panel1_data();
+    if (pdx_got_panel_data)
+        mqtt_send_panel_data();
 
-    if (panel_status_2_read)
-        send_mqtt_panel2_data();
+    if (pdx_got_event)
+        mqtt_send_event_data();
 
-    if (panel_status_3_read)
-        send_mqtt_panel3_data();
+    if (heartbeat)
+        if ((unsigned long)(millis() - last_heartbeat) > (heartbeat_minutes * 60 * 1000))
+        {
+            last_heartbeat = millis();
+            mqtt_heartbeat();
+        }
+}
 
-    if (panel_status_4_read)
-        send_mqtt_panel4_data();
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+//  ######  ####    ###
+// ##    ##  ##    ## ##
+// ##        ##   ##   ##
+//  ######   ##  ##     ##
+//       ##  ##  #########
+// ##    ##  ##  ##     ##
+//  ######  #### ##     ##
 
-    if (panel_status_5_read)
-        send_mqtt_panel5_data();
-
-    if ((unsigned long)(millis() - last_heartbeat) > heartbeat_period)
+void mqtt_send_SIA()
+{
+    if (!SIA && mqtt_SIA_sent)
     {
-        last_heartbeat = millis();
-        client.publish(MQTT_HB_TOPIC, "pc: " + String(panel_connection) + " | psr: " + String(panel_status_request), false, 0);
+        mqtt_SIA_sent = false;
+        char topic[128];
+        sprintf(topic, "%s/%s/%s%s/system in alarm", LOC, TIP, NAME, PUB);
+        client.publish(topic, "0", true, 0);
+    }
+
+    if (SIA && !mqtt_SIA_sent)
+    {
+        mqtt_SIA_sent = true;
+        char topic[128];
+        sprintf(topic, "%s/%s/%s%s/system in alarm", LOC, TIP, NAME, PUB);
+        client.publish(topic, "1", true, 0);
     }
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
+// ########     ###    ##    ## ######## ##          #### ##    ## ########  #######
+// ##     ##   ## ##   ###   ## ##       ##           ##  ###   ## ##       ##     ##
+// ##     ##  ##   ##  ####  ## ##       ##           ##  ####  ## ##       ##     ##
+// ########  ##     ## ## ## ## ######   ##           ##  ## ## ## ######   ##     ##
+// ##        ######### ##  #### ##       ##           ##  ##  #### ##       ##     ##
+// ##        ##     ## ##   ### ##       ##           ##  ##   ### ##       ##     ##
+// ##        ##     ## ##    ## ######## ########    #### ##    ## ##        #######
 
-void mqtt_setup()
+void mqtt_send_panel_info()
 {
-    client.begin(MQTT_HOST, MQTT_PORT, net);
-    client.setWill(MQTT_WILL_TOPIC, "0", true, 0);
-    client.onMessage(messageReceived);
-    mqtt_connect();
-}
+    pdx_panel_data_login = false;
 
-//////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////
+    char topic[128];
 
-void mqtt_connect()
-{
-    uint8_t i = 0;
+    translate_panel_info();
 
-    while (WiFi.status() != WL_CONNECTED)
+    if (strlen(mqtt_tx))
     {
-        delay(100);
-        i++;
-        if (i > 200)
-            ESP.restart();
+        sprintf(topic, "%s/%s/%s%s/panel/info", LOC, TIP, NAME, PUB);
+        client.publish(topic, mqtt_tx, true, 0);
     }
-
-    // certificare
-    BearSSL::X509List cert(digicert);
-    net.setTrustAnchors(&cert);
-
-    while (!client.connect(HOSTNAME, MQTT_USER, MQTT_PASS))
-    {
-        delay(100);
-        i++;
-        if (i > 200)
-            ESP.restart();
-    }
-
-    client.subscribe(MQTT_COMMAND_TOPIC, 0);
-    client.publish(MQTT_WILL_TOPIC, "1", true, 0);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////
-// ########  ########  ######  ######## #### ##     ## ######## ########
-// ##     ## ##       ##    ## ##        ##  ##     ## ##       ##     ##
-// ##     ## ##       ##       ##        ##  ##     ## ##       ##     ##
-// ########  ######   ##       ######    ##  ##     ## ######   ##     ##
-// ##   ##   ##       ##       ##        ##   ##   ##  ##       ##     ##
-// ##    ##  ##       ##    ## ##        ##    ## ##   ##       ##     ##
-// ##     ## ########  ######  ######## ####    ###    ######## ########
-//////////////////////////////////////////////////////////////////////////////////////////
-
-void messageReceived(String &topic, String &payload)
-{
-    StaticJsonDocument<256> doc;
-    deserializeJson(doc, payload);
-    yield();
-
-    if (doc["cmd"])
-        command = doc["cmd"];
-
-    if (doc["scmd"])
-        subcommand = doc["scmd"];
-
-    if (doc["time"])
-        panel_set_date_time = true;
-
-    doc.clear();
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////
-//  ######  ######## ##    ## ########
-// ##    ## ##       ###   ## ##     ##
-// ##       ##       ####  ## ##     ##
-//  ######  ######   ## ## ## ##     ##
-//       ## ##       ##  #### ##     ##
-// ##    ## ##       ##   ### ##     ##
-//  ######  ######## ##    ## ########
-//////////////////////////////////////////////////////////////////////////////////////////
-
-void send_to_mqtt()
-{
-    got_mqtt_data = false;
-    client.publish(MQTT_EVENT_TOPIC, mesaj, true, 0);
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////
-// ########     ###    ##      ##
-// ##     ##   ## ##   ##  ##  ##
-// ##     ##  ##   ##  ##  ##  ##
-// ########  ##     ## ##  ##  ##
-// ##   ##   ######### ##  ##  ##
-// ##    ##  ##     ## ##  ##  ##
-// ##     ## ##     ##  ###  ###
-//////////////////////////////////////////////////////////////////////////////////////////
-
-void send_raw_to_mqtt()
-{
-    uint8_t i = 0;
-    mesaj = "";
-
-    for (i = 0; i < paradox_message_length; i++)
-    {
-        mesaj += String(paradox_rx[i], HEX);
-        mesaj += " ";
-    }
-
-    client.publish(MQTT_RAW_TOPIC, mesaj, false, 0);
-}
-
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
 // ########     ###    ##    ## ######## ##          ########     ###    ########    ###
@@ -152,60 +96,40 @@ void send_raw_to_mqtt()
 // ##        ######### ##  #### ##       ##          ##     ## #########    ##    #########
 // ##        ##     ## ##   ### ##       ##          ##     ## ##     ##    ##    ##     ##
 // ##        ##     ## ##    ## ######## ########    ########  ##     ##    ##    ##     ##
-//////////////////////////////////////////////////////////////////////////////////////////
 
-void send_mqtt_panel_data()
+void mqtt_send_panel_data()
 {
-    panel_data_login = false;
-    StaticJsonDocument<1024> doc;
+    pdx_got_panel_data = false;
 
-    switch (PPI)
+    switch (pdx_rx_buffer[3])
     {
-    case 0x15:
-        doc["model"] = "SP5500";
+    case 0x00:
+        mqtt_send_panel_0_data();
         break;
-    case 0x16:
-        doc["model"] = "SP6000";
+
+    case 0x01:
+        mqtt_send_panel_1_data();
         break;
-    case 0x17:
-        doc["model"] = "SP7000";
+
+    case 0x02:
+        mqtt_send_panel_2_data();
         break;
-    case 0x40:
-        doc["model"] = "MG5000";
+
+    case 0x03:
+        mqtt_send_panel_3_data();
         break;
-    case 0x41:
-        doc["model"] = "MG5050";
+
+    case 0x04:
+        mqtt_send_panel_4_data();
+        break;
+
+    case 0x05:
+        mqtt_send_panel_5_data();
         break;
     }
-
-    doc["panel fw"] = String(PFV) + "." + String(PFB) + "." + String(PFR);
-
-    mesaj = "";
-    if (PPID1 < 0x10)
-        mesaj += "0";
-    mesaj += String(PPID1, HEX);
-    if (PPID2 < 0x10)
-        mesaj += "0";
-    mesaj += String(PPID2, HEX);
-    doc["prog. panel ID"] = mesaj;
-
-    if (PPI > 0x20)
-    {
-        doc["transceiver"]["family"] = String(TF);
-        doc["transceiver"]["hardware"] = String(THR);
-        doc["transceiver"]["firmware"] = String(TFV) + "." + String(TFB) + "." + String(TFR);
-        doc["transceiver"]["noise floor lvl."] = String(TNFL);
-        doc["transceiver"]["noise floor"] = NFLTH ? "high" : "low, ok";
-        doc["transceiver"]["Constant carrier"] = CCD ? "warning" : "absent, ok";
-    }
-
-    mesaj = "";
-    serializeJson(doc, mesaj);
-    doc.clear();
-
-    client.publish(MQTT_PANEL_HW_INFO_TOPIC, mesaj, true, 0);
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
 // ########     ###    ##    ## ######## ##            #####
@@ -215,200 +139,41 @@ void send_mqtt_panel_data()
 // ##        ######### ##  #### ##       ##          ##     ##
 // ##        ##     ## ##   ### ##       ##           ##   ##
 // ##        ##     ## ##    ## ######## ########      #####
-//////////////////////////////////////////////////////////////////////////////////////////
 
-void send_mqtt_panel0_data()
+void mqtt_send_panel_0_data()
 {
-    panel_status_0_read = false;
+    char topic[128];
 
-    uint8_t i = 0;
-    uint8_t b = 0;
+    translate_panel_0_trouble();
+    sprintf(topic, "%s/%s/%s%s/trouble", LOC, TIP, NAME, PUB);
+    client.publish(topic, mqtt_tx, true, 0);
 
-    StaticJsonDocument<1024> doc;
+    translate_panel_ids(19, 4); // array of open zones byte 19
+    sprintf(topic, "%s/%s/%s%s/zone/open", LOC, TIP, NAME, PUB);
+    client.publish(topic, mqtt_tx, true, 0);
 
-    if (PS0[0] || PS0[1] || PS0[2] || PS0[3] || PS0[4]) // report only if events exist
-    {
-        // PANEL 0 BYTE 4
-        if (bitRead(PS0[0], 7))
-            doc.add("Timer loss");
-        if (bitRead(PS0[0], 6))
-            doc.add("Global Fire-Loop Trouble");
-        if (bitRead(PS0[0], 5))
-            doc.add("Global Module Tamper");
-        if (bitRead(PS0[0], 4))
-            doc.add("Global Zone Tamper");
-        if (bitRead(PS0[0], 3))
-            doc.add("Global Communication Trouble");
-        if (bitRead(PS0[0], 2))
-            doc.add("Global Bell trouble");
-        if (bitRead(PS0[0], 1))
-            doc.add("Global Power Trouble");
-        if (bitRead(PS0[0], 0))
-            doc.add("Global RF Transmitter Low Battery");
+    translate_panel_ids(23, 4); // array of tampered zones byte 23
+    sprintf(topic, "%s/%s/%s%s/zone/tamper", LOC, TIP, NAME, PUB);
+    client.publish(topic, mqtt_tx, true, 0);
 
-        // PANEL 0 BYTE 5
-        if (bitRead(PS0[1], 7))
-            doc.add("RF Interference");
-        if (bitRead(PS0[1], 1))
-            doc.add("Global Module Supervision");
-        if (bitRead(PS0[1], 0))
-            doc.add("Global Zone Supervision");
+    translate_panel_ids(27, 2); // array of tampered zones byte 23
+    sprintf(topic, "%s/%s/%s%s/pgm/tamper", LOC, TIP, NAME, PUB);
+    client.publish(topic, mqtt_tx, true, 0);
 
-        // PANEL 0 BYTE 6
-        if (bitRead(PS0[2], 6))
-            doc.add("Wireless Repeater Battery Failure");
-        if (bitRead(PS0[2], 5))
-            doc.add("Wireless Repeater AC Loss");
-        if (bitRead(PS0[2], 4))
-            doc.add("Wireless Keypad Battery Failure");
-        if (bitRead(PS0[2], 3))
-            doc.add("Wireless Keypad AC Loss");
-        if (bitRead(PS0[2], 2))
-            doc.add("Auxiliary Output Overload");
-        if (bitRead(PS0[2], 1))
-            doc.add("AC Failure");
-        if (bitRead(PS0[2], 0))
-            doc.add("No/Low Battery");
+    translate_panel_ids(29, 2); // array of tampered zones byte 23
+    sprintf(topic, "%s/%s/%s%s/module/tamper", LOC, TIP, NAME, PUB);
+    client.publish(topic, mqtt_tx, true, 0);
 
-        // PANEL 0 BYTE 7
-        if (bitRead(PS0[3], 1))
-            doc.add("Bell Output Overload");
-        if (bitRead(PS0[3], 0))
-            doc.add("Bell Output Disconnect");
+    translate_panel_ids(31, 4); // array of open zones byte 19
+    sprintf(topic, "%s/%s/%s%s/zone/fire", LOC, TIP, NAME, PUB);
+    client.publish(topic, mqtt_tx, true, 0);
 
-        // PANEL 0 BYTE 8
-        if (bitRead(PS0[4], 5))
-            doc.add("Computer Fail to Communicate");
-        if (bitRead(PS0[4], 4))
-            doc.add("Voice Fail to Communicate");
-        if (bitRead(PS0[4], 3))
-            doc.add("Pager Fail to Communicate");
-        if (bitRead(PS0[4], 2))
-            doc.add("Central 2 Reporting FTC");
-        if (bitRead(PS0[4], 1))
-            doc.add("Central 1 Reporting FTC");
-        if (bitRead(PS0[4], 0))
-            doc.add("Telephone Line Trouble");
-
-        mesaj = "";
-        serializeJson(doc, mesaj);
-        doc.clear();
-    }
-    else
-    {
-        mesaj = "none";
-    }
-
-    // SEND TROUBLE STATUS
-    client.publish(MQTT_PANEL_TROUBLE_TOPIC, mesaj, false, 0);
-
-    if (PS0[15] || PS0[16] || PS0[17] || PS0[18]) // report only if events exist
-    {
-        // PANEL 0 BYTE 19-22
-        for (i = 0; i < 4; i++)
-        {
-            for (b = 0; b < 8; b++)
-            {
-                if (bitRead(PS0[15 + i], b))
-                    doc.add("Zone " + String(i * 8 + b + 1));
-            }
-        }
-        mesaj = "";
-        serializeJson(doc, mesaj);
-        doc.clear();
-    }
-    else
-    {
-        mesaj = "none";
-    }
-
-    // SEND OPEN STATUS
-    client.publish(MQTT_PANEL_OPEN_TOPIC, mesaj, false, 0);
-
-    if (PS0[19] || PS0[20] || PS0[21] || PS0[22] || PS0[23] || PS0[24] || PS0[25] || PS0[26]) // report only if events exist
-    {
-        // PANEL 0 BYTE 23-26
-        for (i = 0; i < 4; i++)
-        {
-            for (b = 0; b < 8; b++)
-            {
-                if (bitRead(PS0[19 + i], b))
-                    doc.add("Zone " + String(i * 8 + b + 1));
-            }
-        }
-
-        // PANEL 0 BYTE 27-28
-        for (i = 0; i < 2; i++)
-        {
-            for (b = 0; b < 8; b++)
-            {
-                if (bitRead(PS0[23 + i], b))
-                    doc.add("PGM " + String(i * 8 + b + 1));
-            }
-        }
-
-        // PANEL 0 BYTE 29-30
-        for (i = 0; i < 2; i++)
-        {
-            for (b = 0; b < 8; b++)
-            {
-                if (bitRead(PS0[25 + i], b))
-                    doc.add("Bus Module " + String(i * 8 + b + 1));
-            }
-        }
-
-        mesaj = "";
-        serializeJson(doc, mesaj);
-        doc.clear();
-    }
-    else
-    {
-        mesaj = "none";
-    }
-
-    // SEND TAMPER STATUS
-    client.publish(MQTT_PANEL_TAMPER_TOPIC, mesaj, false, 0);
-
-    if (PS0[27] || PS0[28] || PS0[29] || PS0[30]) // report only if events exist
-    {
-        // PANEL 0 BYTE 31-34
-        for (i = 0; i < 4; i++)
-        {
-            for (b = 0; b < 8; b++)
-            {
-                if (bitRead(PS0[27 + i], b))
-                    doc.add("Zone " + String(i * 8 + b + 1));
-            }
-        }
-
-        mesaj = "";
-        serializeJson(doc, mesaj);
-        doc.clear();
-    }
-    else
-    {
-        mesaj = "none";
-    }
-
-    // SEND FIRE STATUS
-    client.publish(MQTT_PANEL_FIRE_TOPIC, mesaj, false, 0);
-
-    // PANEL 0 BYTE 15
-    doc["AC voltage"] = PS0[11];
-    // PANEL 0 BYTE 16
-    doc["DC voltage"] = PS0[12];
-    // PANEL 0 BYTE 17
-    doc["Battery voltage"] = PS0[13];
-    // PANEL 0 BYTE 18
-    doc["RF Noise floor"] = PS0[14];
-
-    mesaj = "";
-    serializeJson(doc, mesaj);
-    doc.clear();
-
-    client.publish(MQTT_PANEL_LEVELS_TOPIC, mesaj, false, 0);
+    translate_panel_0_values();
+    sprintf(topic, "%s/%s/%s%s/panel/values", LOC, TIP, NAME, PUB);
+    client.publish(topic, mqtt_tx, true, 0);
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
 // ########     ###    ##    ## ######## ##             ##
@@ -418,182 +183,58 @@ void send_mqtt_panel0_data()
 // ##        ######### ##  #### ##       ##             ##
 // ##        ##     ## ##   ### ##       ##             ##
 // ##        ##     ## ##    ## ######## ########     ######
-//////////////////////////////////////////////////////////////////////////////////////////
 
-void send_mqtt_panel1_data()
+void mqtt_send_panel_1_data()
 {
-    panel_status_1_read = false;
+    char topic[128];
 
-    uint8_t i = 0;
-    uint8_t b = 0;
+    translate_panel_ids(4, 4);
+    sprintf(topic, "%s/%s/%s%s/zone/RF trouble", LOC, TIP, NAME, PUB);
+    client.publish(topic, mqtt_tx, true, 0);
 
-    StaticJsonDocument<1024> doc;
+    translate_panel_ids(8, 2);
+    sprintf(topic, "%s/%s/%s%s/pgm/RF trouble", LOC, TIP, NAME, PUB);
+    client.publish(topic, mqtt_tx, true, 0);
 
-    if (PS1[13] || PS1[14] || PS1[15] || PS1[16]) // report only if events exist
-    {
-        // PANEL 1 BYTE 17-20
-        for (i = 0; i < 4; i++)
-        {
-            for (b = 0; b < 8; b++)
-            {
-                if (bitRead(PS1[13 + i], b))
-                {
-                    panel_1_partition_status_names(i, b); // loads mesaj with proper text
-                    doc.add(mesaj);
-                }
-            }
-        }
+    translate_panel_ids(10, 2);
+    sprintf(topic, "%s/%s/%s%s/module/supervision", LOC, TIP, NAME, PUB);
+    client.publish(topic, mqtt_tx, true, 0);
 
-        mesaj = "";
-        serializeJson(doc, mesaj);
-        doc.clear();
+    translate_panel_repeater_keypad(12, true);
+    sprintf(topic, "%s/%s/%s%s/repeater/supervision", LOC, TIP, NAME, PUB);
+    client.publish(topic, mqtt_tx, true, 0);
 
-        client.publish(MQTT_PANEL_PARTITION_TOPIC + String(1), mesaj, false, 0);
-    }
+    translate_panel_repeater_keypad(12, false);
+    sprintf(topic, "%s/%s/%s%s/keypad/supervision", LOC, TIP, NAME, PUB);
+    client.publish(topic, mqtt_tx, true, 0);
 
-    if (PS1[17] || PS1[18] || PS1[19] || PS1[20]) // report only if events exist
-    {
-        // PANEL 1 BYTE 21-24
-        for (i = 0; i < 4; i++)
-        {
-            for (b = 0; b < 8; b++)
-            {
-                if (bitRead(PS1[17 + i], b))
-                {
-                    panel_1_partition_status_names(i, b); // loads mesaj with proper text
-                    doc.add(mesaj);
-                }
-            }
-        }
+    translate_panel_ids(13, 4);
+    sprintf(topic, "%s/%s/%s%s/zone/low battery", LOC, TIP, NAME, PUB);
+    client.publish(topic, mqtt_tx, true, 0);
 
-        mesaj = "";
-        serializeJson(doc, mesaj);
-        doc.clear();
+    translate_partition_status(17);
+    sprintf(topic, "%s/%s/%s%s/partition/1/status", LOC, TIP, NAME, PUB);
+    client.publish(topic, mqtt_tx, true, 0);
 
-        client.publish(MQTT_PANEL_PARTITION_TOPIC + String(2), mesaj, false, 0);
-    }
+    translate_partition_status(21);
+    sprintf(topic, "%s/%s/%s%s/partition/2/status", LOC, TIP, NAME, PUB);
+    client.publish(topic, mqtt_tx, true, 0);
 
-    if (PS1[0] || PS1[1] || PS1[2] || PS1[3] || PS1[4] || PS1[5] || PS1[6] || PS1[7] || PS1[8] || PS1[25]) // report only if events exist
-    {
-        // PANEL 1 BYTE 4-7
-        for (i = 0; i < 4; i++)
-        {
-            for (b = 0; b < 8; b++)
-            {
-                if (bitRead(PS1[i], b))
-                    doc.add("Zone " + String(i * 8 + b + 1));
-            }
-        }
+    translate_panel_ids(25, 1);
+    sprintf(topic, "%s/%s/%s%s/repeater/AC lost", LOC, TIP, NAME, PUB);
+    client.publish(topic, mqtt_tx, true, 0);
 
-        // PANEL 1 BYTE 8-9
-        for (i = 0; i < 2; i++)
-        {
-            for (b = 0; b < 8; b++)
-            {
-                if (bitRead(PS1[4 + i], b))
-                    doc.add("PGM " + String(i * 8 + b + 1));
-            }
-        }
+    translate_panel_ids(26, 1);
+    sprintf(topic, "%s/%s/%s%s/repeater/battery failure", LOC, TIP, NAME, PUB);
+    client.publish(topic, mqtt_tx, true, 0);
 
-        // PANEL 1 BYTE 10-11
-        for (i = 0; i < 2; i++)
-        {
-            for (b = 0; b < 8; b++)
-            {
-                if (bitRead(PS1[6 + i], b))
-                    doc.add("Bus Module " + String(i * 8 + b + 1));
-            }
-        }
+    translate_panel_ids(27, 1);
+    sprintf(topic, "%s/%s/%s%s/keypad/AC lost", LOC, TIP, NAME, PUB);
+    client.publish(topic, mqtt_tx, true, 0);
 
-        // PANEL 1 BYTE 12
-        for (b = 0; b < 8; b++)
-        {
-            if (bitRead(PS1[8], b))
-                doc.add("Wireless Repeater/Keyboard " + String(b + 1));
-        }
-
-        // PANEL 1 BYTE 29
-        for (b = 0; b < 8; b++)
-        {
-            if (bitRead(PS1[25], b))
-                doc.add("Wireless Keypad " + String(b + 1));
-        }
-
-        mesaj = "";
-        serializeJson(doc, mesaj);
-        doc.clear();
-    }
-    else
-    {
-        mesaj = "none";
-    }
-
-    // REPORT RF TROUBLE MESSAGE
-    client.publish(MQTT_PANEL_RF_TROUBLE_TOPIC, mesaj, false, 0);
-
-    if (PS1[9] || PS1[10] || PS1[11] || PS1[12] || PS1[22] || PS1[24]) // report only if events exist
-    {
-        // PANEL 1 BYTE 13-16
-        for (i = 0; i < 4; i++)
-        {
-            for (b = 0; b < 8; b++)
-            {
-                if (bitRead(PS1[9 + i], b))
-                    doc.add("Zone " + String(i * 8 + b + 1));
-            }
-        }
-
-        // PANEL 1 BYTE 26
-        for (b = 0; b < 8; b++)
-        {
-            if (bitRead(PS1[22], b))
-                doc.add("Wireless Repeater " + String(b + 1));
-        }
-
-        // PANEL 1 BYTE 28
-        for (b = 0; b < 8; b++)
-        {
-            if (bitRead(PS1[24], b))
-                doc.add("Wireless Keypad " + String(b + 1));
-        }
-
-        mesaj = "";
-        serializeJson(doc, mesaj);
-        doc.clear();
-    }
-    else
-    {
-        mesaj = "none";
-    }
-
-    // REPORT RF LOW BATTERY MESSAGE
-    client.publish(MQTT_PANEL_RF_LOW_BATTERY_TOPIC, mesaj, false, 0);
-
-    if (PS1[21] || PS1[23]) // report only if events exist
-    {
-        // PANEL 1 BYTE 25
-        for (b = 0; b < 8; b++)
-        {
-            if (bitRead(PS1[21], b))
-                doc.add("Wireless Repeater " + String(b + 1));
-        }
-
-        // PANEL 1 BYTE 27
-        for (b = 0; b < 8; b++)
-        {
-            if (bitRead(PS1[23], b))
-                doc.add("Wireless Keypad " + String(b + 1));
-        }
-
-        mesaj = "";
-        serializeJson(doc, mesaj);
-        doc.clear();
-    }
-    else
-    {
-        mesaj = "none";
-    }
-    client.publish(MQTT_PANEL_AC_LOST_TOPIC, mesaj, false, 0);
+    translate_panel_ids(28, 1);
+    sprintf(topic, "%s/%s/%s%s/keypad/battery failure", LOC, TIP, NAME, PUB);
+    client.publish(topic, mqtt_tx, true, 0);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -607,58 +248,16 @@ void send_mqtt_panel1_data()
 // ##        ##     ## ##    ## ######## ########    #########
 //////////////////////////////////////////////////////////////////////////////////////////
 
-void send_mqtt_panel2_data()
+void mqtt_send_panel_2_data()
 {
-    panel_status_2_read = false;
-
+    char topic[128];
     uint8_t i = 0;
-    uint8_t b = 0;
 
-    boolean bit5 = false;
-    boolean bit4 = false;
-
-    StaticJsonDocument<1024> doc;
-
-    for (i = 0; i < 32; i++)
+    for (i = 1; i < 33; i++)
     {
-        if (PS2[i] > 0) // report only if status exists
-        {
-            b = 0;
-
-            if (bitRead(PS2[i], 7))
-                doc[b++] = "Zone was in Alarm";
-            if (bitRead(PS2[i], 6))
-                doc[b++] = "Zone is in Alarm";
-
-            if (bitRead(PS2[i], 5))
-                bit5 = true;
-            if (bitRead(PS2[i], 4))
-                bit4 = true;
-
-            if (bit5 && bit4)
-                doc[b++] = "In Fire Delay";
-            if (!bit5 && bit4)
-                doc[b++] = "In Entry Delay";
-            if (bit5 && !bit4)
-                doc[b++] = "In Intellizone Delay";
-            if (!bit5 && !bit4)
-                doc[b++] = "In No Delay";
-
-            if (bitRead(PS2[i], 3))
-                doc[b++] = "Zone Bypassed";
-            if (bitRead(PS2[i], 2))
-                doc[b++] = "Zone Shutdown";
-            if (bitRead(PS2[i], 1))
-                doc[b++] = "Zone is in TX Delay";
-            if (bitRead(PS2[i], 0))
-                doc[b++] = "Zone was Bypassed";
-
-            mesaj = "";
-            serializeJson(doc, mesaj);
-            doc.clear();
-
-            client.publish(MQTT_ZONE_TOPIC + String(i + 1) + "/status", mesaj, false, 0);
-        }
+        translate_zone_status(i + 3);
+        sprintf(topic, "%s/%s/%s%s/zone/%d/status", LOC, TIP, NAME, PUB, i);
+        client.publish(topic, mqtt_tx, true, 0);
     }
 }
 
@@ -673,18 +272,15 @@ void send_mqtt_panel2_data()
 // ##        ##     ## ##    ## ######## ########     #######
 //////////////////////////////////////////////////////////////////////////////////////////
 
-void send_mqtt_panel3_data()
+void mqtt_send_panel_3_data()
 {
-    panel_status_3_read = false;
-
+    char topic[128];
     uint8_t i = 0;
 
-    for (i = 0; i < 32; i++)
+    for (i = 1; i < 33; i++)
     {
-        if (PS3[i] < 10) // report only if signal less than max
-        {
-            client.publish(MQTT_ZONE_TOPIC + String(i + 1) + "/signal", String(PS3[i]), false, 0);
-        }
+        sprintf(topic, "%s/%s/%s%s/zone/%d/signal", LOC, TIP, NAME, PUB, i);
+        client.publish(topic, String(pdx_rx_buffer[i + 3]), true, 0);
     }
 }
 
@@ -699,34 +295,27 @@ void send_mqtt_panel3_data()
 // ##        ##     ## ##    ## ######## ########          ##
 //////////////////////////////////////////////////////////////////////////////////////////
 
-void send_mqtt_panel4_data()
+void mqtt_send_panel_4_data()
 {
-    panel_status_4_read = false;
-
+    char topic[128];
     uint8_t i = 0;
 
-    for (i = 0; i < 16; i++)
+    for (i = 1; i < 17; i++)
     {
-        if (PS4[i] < 10) // report only if signal less than max
-        {
-            client.publish(MQTT_PGM_TOPIC + String(i + 1) + "/signal", String(PS4[i]), false, 0);
-        }
+        sprintf(topic, "%s/%s/%s%s/pgm/%d/signal", LOC, TIP, NAME, PUB, i);
+        client.publish(topic, String(pdx_rx_buffer[i + 3]), true, 0);
     }
 
-    for (i = 16; i < 18; i++)
+    for (i = 1; i < 3; i++)
     {
-        if (PS4[i] < 10) // report only if signal less than max
-        {
-            client.publish(MQTT_WREP_TOPIC + String(i + 1) + "/signal", String(PS4[i]), false, 0);
-        }
+        sprintf(topic, "%s/%s/%s%s/repeater/%d/signal", LOC, TIP, NAME, PUB, i);
+        client.publish(topic, String(pdx_rx_buffer[i + 19]), true, 0);
     }
 
-    for (i = 18; i < 26; i++)
+    for (i = 1; i < 3; i++)
     {
-        if (PS4[i] < 10) // report only if signal less than max
-        {
-            client.publish(MQTT_WKEY_TOPIC + String(i + 1) + "/signal", String(PS4[i]), false, 0);
-        }
+        sprintf(topic, "%s/%s/%s%s/keypad/%d/signal", LOC, TIP, NAME, PUB, i);
+        client.publish(topic, String(pdx_rx_buffer[i + 21]), true, 0);
     }
 }
 
@@ -741,10 +330,9 @@ void send_mqtt_panel4_data()
 // ##        ##     ## ##    ## ######## ########     ######
 //////////////////////////////////////////////////////////////////////////////////////////
 
-void send_mqtt_panel5_data()
+void mqtt_send_panel_5_data()
 {
-    panel_status_5_read = false;
-
+    char topic[128];
     uint8_t i = 0;
     uint8_t b = 0;
 
@@ -752,14 +340,136 @@ void send_mqtt_panel5_data()
     {
         for (b = 0; b < 8; b++)
         {
-            if (bitRead(PS5[i], b))
-                client.publish(MQTT_ZONE_TOPIC + String(i * 8 + b + 1) + "/status", "Exit Delay", false, 0);
+            sprintf(topic, "%s/%s/%s%s/zone/%d/exit delay", LOC, TIP, NAME, PUB, i * 8 + b + 1);
+            client.publish(topic, String(bitRead(pdx_rx_buffer[i + 4], b)), true, 0);
         }
     }
 }
 
-void send_SIA_status()
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+// ##     ## ########    ###    ########  ######## ########  ########    ###    ########
+// ##     ## ##         ## ##   ##     ##    ##    ##     ## ##         ## ##      ##
+// ##     ## ##        ##   ##  ##     ##    ##    ##     ## ##        ##   ##     ##
+// ######### ######   ##     ## ########     ##    ########  ######   ##     ##    ##
+// ##     ## ##       ######### ##   ##      ##    ##     ## ##       #########    ##
+// ##     ## ##       ##     ## ##    ##     ##    ##     ## ##       ##     ##    ##
+// ##     ## ######## ##     ## ##     ##    ##    ########  ######## ##     ##    ##
+
+void mqtt_heartbeat()
 {
-    SIA = false;
-    client.publish(MQTT_SIA_TOPIC, "1", false, 0);
+    char topic[128];
+
+    DynamicJsonDocument doc(256);
+
+    doc["PDX conn"] = String(pdx_panel_connection > 3 ? "yes" : "no");
+    doc["l"] = LOC;
+    doc["t"] = TIP;
+    doc["n"] = NAME;
+#ifndef USE_SSL
+    doc["fw"] = FW_NAME;
+#else
+    doc["fw"] = String(FW_NAME) + "_SSL";
+#endif
+    doc["fv"] = VERSION;
+    doc["ID"] = String(ESP.getChipId(), HEX);
+    doc["vcc"] = ESP.getVcc();
+    doc["SSID"] = WiFi.SSID();
+    doc["RSSI"] = WiFi.RSSI();
+    doc["BSSID"] = WiFi.BSSIDstr();
+
+    serializeJson(doc, mqtt_tx);
+    doc.clear();
+    sprintf(topic, "%s/%s/%s%s", LOC, TIP, NAME, STAT);
+    client.publish(topic, mqtt_tx, true, 0);
+
+    doc["free heap"] = ESP.getFreeHeap();
+    doc["heap frag"] = ESP.getHeapFragmentation();
+    doc["max block"] = ESP.getMaxFreeBlockSize();
+    doc["core v"] = ESP.getCoreVersion();
+    doc["sdk v"] = ESP.getSdkVersion();
+    doc["sketch"] = ESP.getSketchSize();
+    doc["sketch free"] = ESP.getFreeSketchSpace();
+    doc["MD5"] = ESP.getSketchMD5();
+    doc["crc"] = ESP.checkFlashCRC();
+
+    serializeJson(doc, mqtt_tx);
+    doc.clear();
+    sprintf(topic, "%s/%s/%s%s/1", LOC, TIP, NAME, STAT);
+    client.publish(topic, mqtt_tx, true, 0);
+
+    doc["CPU freq"] = ESP.getCpuFreqMHz();
+    doc["flash freq"] = ESP.getFlashChipSpeed() / 1000000;
+    doc["flash ID"] = String(ESP.getFlashChipId(), HEX);
+    doc["flash size"] = ESP.getFlashChipSize();
+    doc["real flash size"] = ESP.getFlashChipRealSize();
+    doc["CPU cycles"] = ESP.getCycleCount();
+
+    serializeJson(doc, mqtt_tx);
+    doc.clear();
+    sprintf(topic, "%s/%s/%s%s/2", LOC, TIP, NAME, STAT);
+    client.publish(topic, mqtt_tx, true, 0);
 }
+
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+// ########  ########  ######  ######## #### ##     ## ######## ########
+// ##     ## ##       ##    ## ##        ##  ##     ## ##       ##     ##
+// ##     ## ##       ##       ##        ##  ##     ## ##       ##     ##
+// ########  ######   ##       ######    ##  ##     ## ######   ##     ##
+// ##   ##   ##       ##       ##        ##   ##   ##  ##       ##     ##
+// ##    ##  ##       ##    ## ##        ##    ## ##   ##       ##     ##
+// ##     ## ########  ######  ######## ####    ###    ######## ########
+
+void messageReceived(String &topic, String &payload)
+{
+    DynamicJsonDocument doc(256);
+
+    deserializeJson(doc, payload);
+    yield();
+
+    if (doc.containsKey("cmd"))
+        command = doc["cmd"];
+
+    if (doc.containsKey("scmd"))
+        subcommand = doc["scmd"];
+
+    if (doc.containsKey("time"))
+        panel_set_date_time = true;
+
+    if (doc.containsKey("update"))
+        do_ota_update = true;
+
+    if (doc.containsKey("reset"))
+        ESP.restart();
+
+    if (doc.containsKey("disconnect"))
+    {
+        pdx_panel_disconnect();
+        pdx_panel_connection = 0;
+    }
+
+    doc.clear();
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+// ######## ##     ## ######## ##    ## ########
+// ##       ##     ## ##       ###   ##    ##
+// ##       ##     ## ##       ####  ##    ##
+// ######   ##     ## ######   ## ## ##    ##
+// ##        ##   ##  ##       ##  ####    ##
+// ##         ## ##   ##       ##   ###    ##
+// ########    ###    ######## ##    ##    ##
+void mqtt_send_event_data()
+{
+    pdx_got_event = false;
+    translate_event();
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////

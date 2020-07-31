@@ -1,59 +1,79 @@
+ADC_MODE(ADC_VCC);
 #include <ESP8266WiFi.h>
-#include <WiFiClientSecure.h>
-#include <MQTTClient.h>
-#include <time.h>
-#include <ArduinoJson.h>
-#include <FS.h>
+#include <ESP8266WebServer.h>
 #include <ESP8266httpUpdate.h>
+#include <MQTTClient.h>
+#include <ArduinoJson.h>
+#include <LittleFS.h>
+#include <DNSServer.h>
 
-#include "private.h"
-#include "paradox_constants.h"
-#include "mqtt.h"
-#include "paradox.h"
+#ifdef USE_SSL
+#include <WiFiClientSecure.h>
+#include <time.h>
+#else
+#include <WiFiClient.h>
+#endif
 
+//////////
+
+#include "variables.h"
+#include "webpages.h"
+
+//////////
+
+#ifdef USE_SSL
 BearSSL::WiFiClientSecure net;
-MQTTClient client(256);
 time_t now;
+#else
+WiFiClient net;
+#endif
+MQTTClient client(256);
+ESP8266WebServer server(80);
+DNSServer dnsServer;
+
+//////////
+
+void initVariant()
+{
+  WiFi.persistent(false);
+}
+
+//////////
 
 void setup()
 {
-  // init serial for Paradox (UART0)
-  Serial.begin(9600);
-  Serial.flush();
-  // move Paradox on UART1
-  Serial.swap();
-  // flush serial buffer
-  flush_serial_buffer();
-
-  // initialize wifi
-  init_wifi();
-  // get ntp time
-  ntp_time();
-  // take care of certs
-  certification();
-  // setup & connect mqtt
-  mqtt_setup();
-
-  // flush serial buffer before loop
-  flush_serial_buffer();
-
-  // make sure paradox panel connection is closed
-  panel_disconnect();
+  init_serial();    // special serial init
+  load_config();    // read config data
+  init_wifi();      // initialize WiFi
+  init_softap();    // initialize SoftAP if WiFi not configured
+  init_dns();       // initialize DNS for captive portal
+  init_mqtt();      // initialize MQTT
+  init_webserver(); // initialize Webserver
+  init_paradox();   // initialize Paradox
 }
 
 void loop()
 {
-  if (!client.connected())
-    mqtt_connect();
+  if (use_webserver)
+    server.handleClient();
 
-  client.loop();
-  mqtt_loop();
-  paradox_loop();
-}
+  if (use_dns)
+    dnsServer.processNextRequest();
 
-void flush_serial_buffer()
-{
-  Serial.flush();
-  while (Serial.read() >= 0)
-    yield();
+  if (use_mqtt && !client.connected())
+    connect_mqtt();
+
+  if (use_paradox)
+    paradox_loop();
+
+  if (use_mqtt)
+  {
+    client.loop();
+    mqtt_loop();
+  }
+
+  if (do_ota_update)
+    ota_update();
+
+  // delay(10);
 }
