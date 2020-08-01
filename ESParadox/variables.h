@@ -191,7 +191,6 @@ char mqtt_tx[256] = "";
 uint8_t command = 0;
 uint8_t subcommand = 0;
 
-bool panel_set_date_time = false;
 bool mqtt_SIA_sent = false; // System in alarm, bit 2 of command byte
 /////////////////////////////////////////////////
 

@@ -363,7 +363,7 @@ void mqtt_heartbeat()
 
     DynamicJsonDocument doc(256);
 
-    doc["PDX conn"] = String(pdx_panel_connection > 3 ? "yes" : "no");
+    doc["PDX conn"] = pdx_panel_connection > 3 ? true : false;
     doc["l"] = LOC;
     doc["t"] = TIP;
     doc["n"] = NAME;
@@ -372,7 +372,7 @@ void mqtt_heartbeat()
 #else
     doc["fw"] = String(FW_NAME) + "_SSL";
 #endif
-    doc["fv"] = VERSION;
+    doc["ver"] = VERSION;
     doc["ID"] = String(ESP.getChipId(), HEX);
     doc["vcc"] = ESP.getVcc();
     doc["SSID"] = WiFi.SSID();
@@ -425,6 +425,101 @@ void mqtt_heartbeat()
 
 void messageReceived(String &topic, String &payload)
 {
+
+    uint8_t idx = topic.lastIndexOf('/') + 1;
+    String cmnd = topic.substring(idx);
+
+    if (cmnd == "AD")
+    {
+        command = 0x05 - payload.toInt();
+        subcommand = 0;
+        return;
+    }
+
+    if (cmnd == "arm")
+    {
+        command = 0x04;
+        subcommand = 0;
+        return;
+    }
+
+    if (cmnd == "disarm")
+    {
+        command = 0x05;
+        subcommand = 0;
+        return;
+    }
+
+    if (cmnd == "stay_arm")
+    {
+        command = 0x01;
+        subcommand = 0;
+        return;
+    }
+
+    if (cmnd == "sleep_arm")
+    {
+        command = 0x03;
+        subcommand = 0;
+        return;
+    }
+
+    if (cmnd == "stay_arm_d")
+    {
+        command = 0x06;
+        subcommand = 0;
+        return;
+    }
+
+    if (cmnd == "sleep_arm_d")
+    {
+        command = 0x07;
+        subcommand = 0;
+        return;
+    }
+
+    if (cmnd == "disarm_both")
+    {
+        command = 0x08;
+        subcommand = 0;
+        return;
+    }
+
+    if (cmnd == "bypass")
+    {
+        command = 0x10;
+        subcommand = payload.toInt();
+        return;
+    }
+
+    if (cmnd == "pgm_on_ow")
+    {
+        command = 0x30;
+        subcommand = payload.toInt();
+        return;
+    }
+
+    if (cmnd == "pgm_off_ow")
+    {
+        command = 0x31;
+        subcommand = payload.toInt();
+        return;
+    }
+
+    if (cmnd == "pgm_on")
+    {
+        command = 0x32;
+        subcommand = payload.toInt();
+        return;
+    }
+
+    if (cmnd == "pgm_off")
+    {
+        command = 0x33;
+        subcommand = payload.toInt();
+        return;
+    }
+
     DynamicJsonDocument doc(256);
 
     deserializeJson(doc, payload);
@@ -437,7 +532,15 @@ void messageReceived(String &topic, String &payload)
         subcommand = doc["scmd"];
 
     if (doc.containsKey("time"))
-        panel_set_date_time = true;
+    {
+        uint16_t year = doc["year"];
+        uint8_t month = doc["month"];
+        uint8_t day = doc["day"];
+        uint8_t hour = doc["hour"];
+        uint8_t minute = doc["minute"];
+
+        panel_set_time(year, month, day, hour, minute);
+    }
 
     if (doc.containsKey("update"))
         do_ota_update = true;

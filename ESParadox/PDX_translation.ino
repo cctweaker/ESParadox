@@ -524,6 +524,8 @@ void translate_event()
             ///////////
         case 14:
             doc["event"] = F("Exit delay started");
+            sprintf(topic, "%s/%s/%s%s/arm", LOC, TIP, NAME, PUB);
+            client.publish(topic, "1", true, 0);
             break;
             ///////////
         case 15:
@@ -1437,8 +1439,19 @@ void translate_event()
 
     if (is_partition)
     {
-        sprintf(topic, "%s/%s/%s%s/partition/%d", LOC, TIP, NAME, PUB, pdx_rx_buffer[9]);
+        sprintf(topic, "%s/%s/%s%s/partition/%d", LOC, TIP, NAME, PUB, pdx_rx_buffer[9] + 1);
         client.publish(topic, (const char *)doc["event"], true, 0);
+
+        if (pdx_rx_buffer[8] == 12) // arm partition
+        {
+            sprintf(topic, "%s/%s/%s%s/arm", LOC, TIP, NAME, PUB);
+            client.publish(topic, "1", true, 0);
+        }
+        if (pdx_rx_buffer[8] == 11) // disarm partition
+        {
+            sprintf(topic, "%s/%s/%s%s/arm", LOC, TIP, NAME, PUB);
+            client.publish(topic, "0", true, 0);
+        }
     }
 
     if (is_bell)

@@ -56,12 +56,6 @@ void paradox_loop()
         return;
     }
 
-    if (panel_set_date_time)
-    {
-        panel_set_time();
-        return;
-    }
-
     if (pdx_panel_refresh)
         if ((unsigned long)(millis() - pdx_panel_last_refresh) > (pdx_panel_refresh_time * 1000))
         {
@@ -422,34 +416,22 @@ void panel_command()
 // ##    ## ##          ##          ##     ##  ##     ## ##
 //  ######  ########    ##          ##    #### ##     ## ########
 
-void panel_set_time()
+void panel_set_time(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute)
 {
-    // struct tm *timeinfo;
-    // uint8_t year = timeinfo->tm_year - 100;
+    pdx_clear_tx_buffer();
 
-    // pdx_clear_tx_buffer();
+    pdx_tx_buffer[0] = 0x30;
+    pdx_tx_buffer[4] = 20;
+    pdx_tx_buffer[5] = year - 2000;
+    pdx_tx_buffer[6] = month;
+    pdx_tx_buffer[7] = day;
+    pdx_tx_buffer[8] = hour;
+    pdx_tx_buffer[9] = minute;
+    pdx_tx_buffer[33] = SourceID;
+    pdx_tx_buffer[34] = UserID >> 8;
+    pdx_tx_buffer[35] = UserID;
 
-    // pdx_tx_buffer[0] = 0x30;
-    // pdx_tx_buffer[4] = 20;
-    // pdx_tx_buffer[5] = year;
-    // pdx_tx_buffer[6] = timeinfo->tm_mon;
-    // pdx_tx_buffer[7] = timeinfo->tm_mday;
-    // pdx_tx_buffer[8] = timeinfo->tm_hour;
-    // pdx_tx_buffer[9] = timeinfo->tm_min;
-    // pdx_tx_buffer[33] = SourceID;
-    // pdx_tx_buffer[34] = UserID>>8;
-    // pdx_tx_buffer[35] = UserID;
-
-    // for (uint8_t i = 0; i < 37; i++)
-    // {
-    //     pdx_rx_buffer[i] = pdx_tx_buffer[i];
-
-    // }
-    // send_raw_to_mqtt();
-
-    // // send_data();
-
-    panel_set_date_time = false;
+    send_data();
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////

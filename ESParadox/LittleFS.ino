@@ -39,7 +39,7 @@ bool fs_load_wifi()
     doc.clear();
 
     // if ((strlen(SSIDa) && strlen(PASSa)) || (strlen(SSIDb) && strlen(PASSb)))
-        return true;
+    return true;
 
     // return false;
 }
@@ -185,6 +185,9 @@ bool fs_load_paradox()
 
     if (doc.containsKey("pdx_panel_refresh_time"))
         pdx_panel_refresh_time = doc["pdx_panel_refresh_time"];
+
+    if (doc.containsKey("pdx_panel_refresh"))
+        pdx_panel_refresh = doc["pdx_panel_refresh"];
 
     if (doc.containsKey("start_paradox"))
         start_paradox = doc["start_paradox"];
@@ -363,6 +366,7 @@ const char *save_paradox()
     doc["UserID"] = UserID;
     doc["UserPASS"] = UserPASS;
     doc["pdx_panel_refresh_time"] = pdx_panel_refresh_time;
+    doc["pdx_panel_refresh"] = pdx_panel_refresh;
     doc["start_paradox"] = start_paradox;
 
     yield();

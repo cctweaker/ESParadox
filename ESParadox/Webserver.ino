@@ -319,6 +319,18 @@ void cfg_page_paradox()
     if (server.hasArg("start_paradox"))
         start_paradox = server.arg("start_paradox").toInt();
 
+    if (server.hasArg("year"))
+    {
+        uint16_t year = server.arg("year").toInt();
+        uint8_t month = server.arg("month").toInt();
+        uint8_t day = server.arg("day").toInt();
+        uint8_t hour = server.arg("hour").toInt();
+        uint8_t minute = server.arg("minute").toInt();
+
+        if (year && month && day)
+            panel_set_time(year, month, day, hour, minute);
+    }
+
     ///////////
     yield();
     ///////////
@@ -352,6 +364,22 @@ void cfg_page_paradox()
     server.sendContent(buffer);
 
     server.sendContent_P(form_buttons);
+
+    server.sendContent_P(html_hr);
+    server.sendContent(F("<h2>Update Paradox date/time</h2>"));
+    server.sendContent_P(form_start);
+    sprintf_P(buffer, form_text_field_string, "Year", "year", "");
+    server.sendContent(buffer);
+    sprintf_P(buffer, form_text_field_string, "Month", "month", "");
+    server.sendContent(buffer);
+    sprintf_P(buffer, form_text_field_string, "Day", "day", "");
+    server.sendContent(buffer);
+    sprintf_P(buffer, form_text_field_string, "Hour", "hour", "");
+    server.sendContent(buffer);
+    sprintf_P(buffer, form_text_field_string, "Minute", "minute", "");
+    server.sendContent(buffer);
+    server.sendContent(F("<input type='submit' value='Update time'>"));
+    server.sendContent_P(form_end);
 
     if (server.hasArg("save"))
     {
