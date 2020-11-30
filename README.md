@@ -32,6 +32,7 @@ home/alarm/ESParadox/...
 JSON commands:
 {"cmd":number, "scmd":number} - send command/subcommand, read manual
 {"time":"set", "year":2020, "month":7, "day":31, "hour":15, "minute":33} - set date/time
+{"UserID":"0000", "UserPASS":"123456"} - set userid/password for panel login. First user is usually 0000 and password is the one you use on the panel for disarming. This command can be used in case you don't want to store it in ESP flash memory. Data must be sent as text! Password can be 4 or 6 characters long.
 {"update":any} - perform update
 {"reset":any} - perform ESP restart
 {"disconnect":any} - log out from Paradox (does a log in immediately)

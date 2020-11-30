@@ -524,7 +524,7 @@ void translate_event()
             ///////////
         case 14:
             doc["event"] = F("Exit delay started");
-            sprintf(topic, "%s/%s/%s%s/arm", LOC, TIP, NAME, PUB);
+            sprintf(topic, "%s%s%s%s%s/arm", LOC, TIP, NAME, XTRA, PUB);
             client.publish(topic, "1", true, 0);
             break;
             ///////////
@@ -1427,67 +1427,67 @@ void translate_event()
 
     if (is_zone)
     {
-        sprintf(topic, "%s/%s/%s%s/zone/%d", LOC, TIP, NAME, PUB, pdx_rx_buffer[8]);
+        sprintf(topic, "%s%s%s%s%s/zone/%d", LOC, TIP, NAME, XTRA, PUB, pdx_rx_buffer[8]);
         client.publish(topic, (const char *)doc["event"], true, 0);
 
-        sprintf(topic, "%s/%s/%s%s/zone/%d/label", LOC, TIP, NAME, PUB, pdx_rx_buffer[8]);
+        sprintf(topic, "%s%s%s%s%s/zone/%d/label", LOC, TIP, NAME, XTRA, PUB, pdx_rx_buffer[8]);
         client.publish(topic, (const char *)doc["label"], true, 0);
 
-        sprintf(topic, "%s/%s/%s%s/zone/%d/sn", LOC, TIP, NAME, PUB, pdx_rx_buffer[8]);
+        sprintf(topic, "%s%s%s%s%s/zone/%d/sn", LOC, TIP, NAME, XTRA, PUB, pdx_rx_buffer[8]);
         client.publish(topic, (const char *)doc["sn#"], true, 0);
     }
 
     if (is_partition)
     {
-        sprintf(topic, "%s/%s/%s%s/partition/%d", LOC, TIP, NAME, PUB, pdx_rx_buffer[9] + 1);
+        sprintf(topic, "%s%s%s%s%s/partition/%d", LOC, TIP, NAME, XTRA, PUB, pdx_rx_buffer[9] + 1);
         client.publish(topic, (const char *)doc["event"], true, 0);
 
         if (pdx_rx_buffer[8] == 12) // arm partition
         {
-            sprintf(topic, "%s/%s/%s%s/arm", LOC, TIP, NAME, PUB);
+            sprintf(topic, "%s%s%s%s%s/arm", LOC, TIP, NAME, XTRA, PUB);
             client.publish(topic, "1", true, 0);
         }
         if (pdx_rx_buffer[8] == 11) // disarm partition
         {
-            sprintf(topic, "%s/%s/%s%s/arm", LOC, TIP, NAME, PUB);
+            sprintf(topic, "%s%s%s%s%s/arm", LOC, TIP, NAME, XTRA, PUB);
             client.publish(topic, "0", true, 0);
         }
     }
 
     if (is_bell)
     {
-        sprintf(topic, "%s/%s/%s%s/bell", LOC, TIP, NAME, PUB);
+        sprintf(topic, "%s%s%s%s%s/bell", LOC, TIP, NAME, XTRA, PUB);
         client.publish(topic, (const char *)doc["event"], true, 0);
     }
 
     if (is_module)
     {
-        sprintf(topic, "%s/%s/%s%s/module/%d", LOC, TIP, NAME, PUB, pdx_rx_buffer[8]);
+        sprintf(topic, "%s%s%s%s%s/module/%d", LOC, TIP, NAME, XTRA, PUB, pdx_rx_buffer[8]);
         client.publish(topic, (const char *)doc["event"], true, 0);
     }
 
     if (is_arm)
     {
-        sprintf(topic, "%s/%s/%s%s/arm/event", LOC, TIP, NAME, PUB);
+        sprintf(topic, "%s%s%s%s%s/arm/event", LOC, TIP, NAME, XTRA, PUB);
         client.publish(topic, (const char *)doc["event"], true, 0);
     }
 
     if (is_alarm)
     {
-        sprintf(topic, "%s/%s/%s%s/alarm/event", LOC, TIP, NAME, PUB);
+        sprintf(topic, "%s%s%s%s%s/alarm/event", LOC, TIP, NAME, XTRA, PUB);
         client.publish(topic, (const char *)doc["event"], true, 0);
     }
 
     if (is_trouble)
     {
-        sprintf(topic, "%s/%s/%s%s/trouble/event", LOC, TIP, NAME, PUB);
+        sprintf(topic, "%s%s%s%s%s/trouble/event", LOC, TIP, NAME, XTRA, PUB);
         client.publish(topic, (const char *)doc["event"], true, 0);
     }
 
     serializeJson(doc, mqtt_tx);
     doc.clear();
 
-    sprintf(topic, "%s/%s/%s%s/event", LOC, TIP, NAME, PUB);
+    sprintf(topic, "%s%s%s%s%s/event", LOC, TIP, NAME, XTRA, PUB);
     client.publish(topic, mqtt_tx, true, 0);
 }
 

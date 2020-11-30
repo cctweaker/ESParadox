@@ -1,6 +1,30 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
+// #### ##    ## #### ########    ########     ###    ########     ###    ########   #######  ##     ##
+//  ##  ###   ##  ##     ##       ##     ##   ## ##   ##     ##   ## ##   ##     ## ##     ##  ##   ##
+//  ##  ####  ##  ##     ##       ##     ##  ##   ##  ##     ##  ##   ##  ##     ## ##     ##   ## ##
+//  ##  ## ## ##  ##     ##       ########  ##     ## ########  ##     ## ##     ## ##     ##    ###
+//  ##  ##  ####  ##     ##       ##        ######### ##   ##   ######### ##     ## ##     ##   ## ##
+//  ##  ##   ###  ##     ##       ##        ##     ## ##    ##  ##     ## ##     ## ##     ##  ##   ##
+// #### ##    ## ####    ##       ##        ##     ## ##     ## ##     ## ########   #######  ##     ##
+
+void init_paradox()
+{
+    pdx_panel_disconnect();    // make sure paradox panel connection is closed
+    pdx_flush_serial_buffer(); // flush serial buffer before loop
+
+    if (start_paradox)
+    {
+        use_paradox = true;
+        if (pdx_panel_refresh)
+            pdx_do_panel_login = true;
+    }
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
 // ########  ########  ##     ##    ##        #######   #######  ########
 // ##     ## ##     ##  ##   ##     ##       ##     ## ##     ## ##     ##
 // ##     ## ##     ##   ## ##      ##       ##     ## ##     ## ##     ##
@@ -14,17 +38,7 @@ void paradox_loop()
     if (Serial.available() >= PDX_MSG_LENGTH)
     {
         pdx_read_data();
-        return;
     }
-
-    if (Serial.available())
-        return;
-
-    // if (got_event)
-    // {
-    //     prepare_event_json();
-    //     return;
-    // }
 
     if (pdx_got_data)
     {
@@ -32,41 +46,97 @@ void paradox_loop()
         return;
     }
 
-    if (Serial.available() > 0)
-    {
-        return;
-    }
-
-    if (pdx_panel_connection < 4)
-    {
-        panel_login();
-        pdx_panel_last_refresh = millis();
-        return;
-    }
-
-    if (!WDC) // bit0 of command byte from Paradox
-    {
-        pdx_panel_connection = 0;
-        return;
-    }
-
-    if (command > 0)
-    {
-        panel_command();
-        return;
-    }
-
-    if (pdx_panel_refresh)
-        if ((unsigned long)(millis() - pdx_panel_last_refresh) > (pdx_panel_refresh_time * 1000))
+    if (pdx_do_panel_login)
+        if (pdx_panel_connection < 4)
         {
-            pdx_panel_last_refresh = millis();
+            if ((unsigned long)(millis() - pdx_panel_login_start) > 2000)
+                pdx_panel_connection = 0;
 
-            pdx_panel_get_status();
-            pdx_panel_number_request++;
-
-            if (pdx_panel_number_request > 5)
-                pdx_panel_number_request = 0;
+            panel_login();
+            return;
         }
+
+    if (pdx_panel_connection > 3) // if logged in
+    {
+        if (!WDC) // bit0 of command byte from Paradox
+        {
+            pdx_panel_connection = 0;
+            return;
+        }
+        if (command > 0)
+        {
+            panel_command();
+            if (!pdx_panel_refresh)
+                pdx_do_panel_login = false;
+            return;
+        }
+    }
+    else
+    {
+        if (command > 0)
+        {
+            pdx_do_panel_login = true;
+            return;
+        }
+    }
+
+    if (pdx_panel_refresh) // should we get panel data?
+    {
+        if (pdx_panel_data_periodic)
+        {
+            // this is periodic refresh, default each hour
+            // check if it is time to start a panel data fetch
+            if ((unsigned long)(millis() - pdx_panel_data_periodic_last_refresh) > pdx_panel_data_period)
+            {
+                // loop through all 6 panels to get data
+                if ((unsigned long)(millis() - pdx_panel_last_refresh) > (pdx_panel_refresh_time * 1000))
+                {
+                    if (pdx_panel_connection < 4)
+                    {
+                        pdx_do_panel_login = true;
+                        return;
+                    }
+
+                    pdx_panel_get_status();
+                    pdx_panel_number_request++;
+
+                    pdx_panel_last_refresh = millis();
+
+                    if (pdx_panel_number_request > 5)
+                    {
+                        // reset panel number to 0 for next time
+                        pdx_panel_number_request = 0;
+                        // mark the time when we got all panel data
+                        pdx_panel_data_periodic_last_refresh = millis();
+                        // connection not needed anymore
+                        pdx_do_panel_login = false;
+                        pdx_panel_disconnect();
+                    }
+                }
+            }
+        }
+        else
+        {
+            // this is constant refresh of panel data
+            // check if we are logged in
+            if (pdx_panel_connection < 4)
+            {
+                pdx_do_panel_login = true;
+                return;
+            }
+
+            if ((unsigned long)(millis() - pdx_panel_last_refresh) > (pdx_panel_refresh_time * 1000))
+            {
+                pdx_panel_get_status();
+                pdx_panel_number_request++;
+
+                pdx_panel_last_refresh = millis();
+
+                if (pdx_panel_number_request > 5)
+                    pdx_panel_number_request = 0;
+            }
+        }
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -130,6 +200,10 @@ void pdx_check_data()
     WLC = bitRead(pdx_rx_buffer[0], 1);
     SIA = bitRead(pdx_rx_buffer[0], 2);
 
+    char topic[128];
+    sprintf(topic, "%s%s%s%s/wdc", LOC, TIP, NAME, XTRA);
+    client.publish(topic, String(bitRead(pdx_rx_buffer[0], 0)), false, 0);
+
     switch (command)
     {
     case 0x00: // panel answer to PC request
@@ -181,59 +255,6 @@ void pdx_check_data()
     case 0x50:
         if (pdx_rx_buffer[2] == 0x80) // it is a panel status response
             pdx_got_panel_data = true;
-        /*
-        {
-            switch (pdx_rx_buffer[3])
-            {
-            case 0x00: // Panel Status 0
-                for (uint8_t i = 0; i < PS0len; i++)
-                {
-                    PS0[i] = pdx_rx_buffer[4 + i];
-                }
-                panel_status_0_read = true;
-                break;
-
-            case 0x01: // Panel Status 1
-                for (uint8_t i = 0; i < PS1len; i++)
-                {
-                    PS1[i] = pdx_rx_buffer[4 + i];
-                }
-                panel_status_1_read = true;
-                break;
-
-            case 0x02: // Panel Status 2
-                for (uint8_t i = 0; i < PS2len; i++)
-                {
-                    PS2[i] = pdx_rx_buffer[4 + i];
-                }
-                panel_status_2_read = true;
-                break;
-
-            case 0x03: // Panel Status 3
-                for (uint8_t i = 0; i < PS3len; i++)
-                {
-                    PS3[i] = pdx_rx_buffer[4 + i];
-                }
-                panel_status_3_read = true;
-                break;
-
-            case 0x04: // Panel Status 4
-                for (uint8_t i = 0; i < PS4len; i++)
-                {
-                    PS4[i] = pdx_rx_buffer[4 + i];
-                }
-                panel_status_4_read = true;
-                break;
-
-            case 0x05: // Panel Status 5
-                for (uint8_t i = 0; i < PS5len; i++)
-                {
-                    PS5[i] = pdx_rx_buffer[4 + i];
-                }
-                panel_status_5_read = true;
-                break;
-            }
-        }*/
         break;
 
     case 0x70:
@@ -250,7 +271,6 @@ void pdx_check_data()
 
         if (pdx_rx_buffer[7] == 0x30 && pdx_rx_buffer[8] == 0x03)
             pdx_panel_connection = 0;
-
         break;
     }
 }
@@ -297,10 +317,10 @@ bool pdx_check_checksum()
 
 void panel_login()
 {
-
     // if it is the first step in establishing communications
     if (pdx_panel_connection == 0)
     {
+        pdx_panel_login_start = millis();
         pdx_panel_connection = 1;
         pdx_clear_tx_buffer();
 

@@ -1,5 +1,3 @@
-private.h
-info.txt
 .cache/*
 .pio/*
 .pioenvs/*
@@ -7,4 +5,5 @@ info.txt
 include/*
 lib/*
 test/*
+release/*
 firmware.map

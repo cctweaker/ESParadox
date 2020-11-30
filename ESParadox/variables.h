@@ -61,11 +61,17 @@ bool partition_rights_access_2 = false;
 /////////////////////////////////////////////////
 // PANEL STATUS
 /////////////////////////////////////////////////
+bool pdx_do_panel_login = false;          // do a panel login
+unsigned long pdx_panel_login_start = 0;  // moment login attempt started
 bool pdx_got_panel_data = false;          // have data to show
-bool pdx_panel_refresh = false;            // enable panel data refresh
+bool pdx_panel_refresh = false;           // enable panel data refresh
 uint8_t pdx_panel_number_request = 0;     // panel to request
-uint8_t pdx_panel_refresh_time = 5;       // time for refresh 5 sec
+uint8_t pdx_panel_refresh_time = 15;      // time for inter-panel delay = 15 sec
 unsigned long pdx_panel_last_refresh = 0; // panel data last hearbeat
+
+bool pdx_panel_data_periodic = true;                      // continuous or periodic reads?
+unsigned long pdx_panel_data_period = 1 * 60 * 60 * 1000; // each hour
+unsigned long pdx_panel_data_periodic_last_refresh = 0;   // last periodic read
 /////////////////////////////////////////////////
 
 /////////////////////////////////////////////////
@@ -154,15 +160,23 @@ const byte DNS_PORT = 53;
 // ########  ########    ###    ####  ######  ########
 /////////////////////////////////////////////////
 const char FW_NAME[] = "ESParadox";
+#ifdef LNG
+#if LNG == 1
+const char LANG[] = "_RO";
+#else
+const char LANG[] = "";
+#endif
+#endif
 
-char LOC[16] = "home";
-char TIP[16] = "alarm";
-char NAME[16] = "ESParadox";
+char LOC[32] = "home/";
+char TIP[32] = "alarm/";
+char NAME[32] = "ESParadox";
+char XTRA[32] = "";
 
 char update_url[128] = "esp.3dstar.ro/";
 
-bool heartbeat = true;
-uint8_t heartbeat_minutes = 10;
+bool heartbeat = false;
+uint8_t heartbeat_minutes = 60;
 unsigned long last_heartbeat = 0;
 /////////////////////////////////////////////////
 
@@ -184,7 +198,7 @@ char MQTT_PASS[32] = "12345678";
 
 char WILL[16] = "/will";
 char PUB[16] = "";
-char SUB[16] = "/cmnd";
+char SUB[16] = "/cmnd/+";
 char STAT[16] = "/stat";
 
 char mqtt_tx[256] = "";

@@ -78,6 +78,8 @@ bool fs_load_device()
         strlcpy(TIP, doc["TIP"], sizeof(TIP));
     if (doc.containsKey("NAME"))
         strlcpy(NAME, doc["NAME"], sizeof(NAME));
+    if (doc.containsKey("XTRA"))
+        strlcpy(XTRA, doc["XTRA"], sizeof(XTRA));
 
     if (doc.containsKey("update_url"))
         strlcpy(update_url, doc["update_url"], sizeof(update_url));
@@ -177,20 +179,26 @@ bool fs_load_paradox()
     configFile.close();
     LittleFS.end();
 
+    if (doc.containsKey("start_paradox"))
+        start_paradox = doc["start_paradox"];
+
     if (doc.containsKey("UserID"))
         UserID = doc["UserID"];
 
     if (doc.containsKey("UserPASS"))
         UserPASS = doc["UserPASS"];
 
-    if (doc.containsKey("pdx_panel_refresh_time"))
-        pdx_panel_refresh_time = doc["pdx_panel_refresh_time"];
-
     if (doc.containsKey("pdx_panel_refresh"))
         pdx_panel_refresh = doc["pdx_panel_refresh"];
 
-    if (doc.containsKey("start_paradox"))
-        start_paradox = doc["start_paradox"];
+    if (doc.containsKey("pdx_panel_data_periodic"))
+        pdx_panel_data_periodic = doc["pdx_panel_data_periodic"];
+
+    if (doc.containsKey("pdx_panel_data_period"))
+        pdx_panel_data_period = doc["pdx_panel_data_period"];
+
+    if (doc.containsKey("pdx_panel_refresh_time"))
+        pdx_panel_refresh_time = doc["pdx_panel_refresh_time"];
 
     doc.clear();
 
@@ -231,7 +239,7 @@ void fs_format()
 // ##    ##    ##  ##  ##  ##  ##        ##
 //  ######      ###  ###  #### ##       ####
 
-const char *save_wifi()
+const char *fs_save_wifi()
 {
     if (!LittleFS.begin())
         return littlefs_failure;
@@ -269,7 +277,7 @@ const char *save_wifi()
 // ##    ##    ##     ## ##         ## ##    ##  ##    ## ##
 //  ######     ########  ########    ###    ####  ######  ########
 
-const char *save_device()
+const char *fs_save_device()
 {
     if (!LittleFS.begin())
         return littlefs_failure;
@@ -279,6 +287,7 @@ const char *save_device()
     doc["LOC"] = LOC;
     doc["TIP"] = TIP;
     doc["NAME"] = NAME;
+    doc["XTRA"] = XTRA;
 
     doc["update_url"] = update_url;
 
@@ -313,7 +322,7 @@ const char *save_device()
 // ##    ##    ##     ## ##    ##     ##       ##
 //  ######     ##     ##  ##### ##    ##       ##
 
-const char *save_mqtt()
+const char *fs_save_mqtt()
 {
     if (!LittleFS.begin())
         return littlefs_failure;
@@ -356,18 +365,20 @@ const char *save_mqtt()
 // ##    ##    ##        ##     ## ##    ##  ##     ## ##     ## ##     ##  ##   ##
 //  ######     ##        ##     ## ##     ## ##     ## ########   #######  ##     ##
 
-const char *save_paradox()
+const char *fs_save_paradox()
 {
     if (!LittleFS.begin())
         return littlefs_failure;
 
     DynamicJsonDocument doc(512);
 
+    doc["start_paradox"] = start_paradox;
     doc["UserID"] = UserID;
     doc["UserPASS"] = UserPASS;
-    doc["pdx_panel_refresh_time"] = pdx_panel_refresh_time;
     doc["pdx_panel_refresh"] = pdx_panel_refresh;
-    doc["start_paradox"] = start_paradox;
+    doc["pdx_panel_data_periodic"] = pdx_panel_data_periodic;
+    doc["pdx_panel_data_period"] = pdx_panel_data_period;
+    doc["pdx_panel_refresh_time"] = pdx_panel_refresh_time;
 
     yield();
 
