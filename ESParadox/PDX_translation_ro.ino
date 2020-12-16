@@ -1,4 +1,4 @@
-#if LNG == 0
+#if LNG == 1
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -74,65 +74,65 @@ void translate_panel_0_trouble()
     {
         // PANEL 0 BYTE 4
         if (bitRead(pdx_rx_buffer[4], 7))
-            doc.add(F("Timer loss"));
+            doc.add(F("Ceas dereglat"));
         if (bitRead(pdx_rx_buffer[4], 6))
-            doc.add(F("Global Fire-Loop Trouble"));
+            doc.add(F("Alarma foc globala"));
         if (bitRead(pdx_rx_buffer[4], 5))
-            doc.add(F("Global Module Tamper"));
+            doc.add(F("Acces neautorizat global"));
         if (bitRead(pdx_rx_buffer[4], 4))
-            doc.add(F("Global Zone Tamper"));
+            doc.add(F("Acces neautorizat zona global"));
         if (bitRead(pdx_rx_buffer[4], 3))
-            doc.add(F("Global Communication Trouble"));
+            doc.add(F("Problema comunicare globala"));
         if (bitRead(pdx_rx_buffer[4], 2))
-            doc.add(F("Global Bell trouble"));
+            doc.add(F("Problema sirena globala"));
         if (bitRead(pdx_rx_buffer[4], 1))
-            doc.add(F("Global Power Trouble"));
+            doc.add(F("Problema alimentare globala"));
         if (bitRead(pdx_rx_buffer[4], 0))
-            doc.add(F("Global RF Transmitter Low Battery"));
+            doc.add(F("Bateria slaba transmitator RF global"));
 
         // PANEL 0 BYTE 5
         if (bitRead(pdx_rx_buffer[5], 7))
-            doc.add(F("RF Interference"));
+            doc.add(F("Interferenta RF"));
         if (bitRead(pdx_rx_buffer[5], 1))
-            doc.add(F("Global Module Supervision"));
+            doc.add(F("Supervizare globala modul"));
         if (bitRead(pdx_rx_buffer[5], 0))
-            doc.add(F("Global Zone Supervision"));
+            doc.add(F("Supervizare zona globala"));
 
         // PANEL 0 BYTE 6
         if (bitRead(pdx_rx_buffer[6], 6))
-            doc.add(F("Wireless Repeater Battery Failure"));
+            doc.add(F("Baterie slaba repetor RF"));
         if (bitRead(pdx_rx_buffer[6], 5))
-            doc.add(F("Wireless Repeater AC Loss"));
+            doc.add(F("Pierdere alimentare AC repetor RF"));
         if (bitRead(pdx_rx_buffer[6], 4))
-            doc.add(F("Wireless Keypad Battery Failure"));
+            doc.add(F("Baterie slaba tastatura fara fir"));
         if (bitRead(pdx_rx_buffer[6], 3))
-            doc.add(F("Wireless Keypad AC Loss"));
+            doc.add(F("Pierdere alimentare AC tastatura fara fir"));
         if (bitRead(pdx_rx_buffer[6], 2))
-            doc.add(F("Auxiliary Output Overload"));
+            doc.add(F("Supraincarcare consum auxiliar"));
         if (bitRead(pdx_rx_buffer[6], 1))
-            doc.add(F("AC Failure"));
+            doc.add(F("Pierdere alimentare AC"));
         if (bitRead(pdx_rx_buffer[6], 0))
-            doc.add(F("No/Low Battery"));
+            doc.add(F("Baterie slaba / defecta"));
 
         // PANEL 0 BYTE 7
         if (bitRead(pdx_rx_buffer[7], 1))
-            doc.add(F("Bell Output Overload"));
+            doc.add(F("Supraincarcare iesire sirena"));
         if (bitRead(pdx_rx_buffer[7], 0))
-            doc.add(F("Bell Output Disconnect"));
+            doc.add(F("Iesire sirena deconectata"));
 
         // PANEL 0 BYTE 8
         if (bitRead(pdx_rx_buffer[8], 5))
-            doc.add(F("Computer Fail to Communicate"));
+            doc.add(F("Eroare comunicare computer"));
         if (bitRead(pdx_rx_buffer[8], 4))
-            doc.add(F("Voice Fail to Communicate"));
+            doc.add(F("Eroare comunicare voce"));
         if (bitRead(pdx_rx_buffer[8], 3))
-            doc.add(F("Pager Fail to Communicate"));
+            doc.add(F("Eroare comunicare pager"));
         if (bitRead(pdx_rx_buffer[8], 2))
-            doc.add(F("Central 2 Reporting FTC"));
+            doc.add(F("Eroare comunicare telefon centrala 2"));
         if (bitRead(pdx_rx_buffer[8], 1))
-            doc.add(F("Central 1 Reporting FTC"));
+            doc.add(F("Eroare comunicare telefon centrala 1"));
         if (bitRead(pdx_rx_buffer[8], 0))
-            doc.add(F("Telephone Line Trouble"));
+            doc.add(F("Probleme linie telefon"));
 
         serializeJson(doc, mqtt_tx);
         doc.clear();
@@ -154,10 +154,10 @@ void translate_panel_0_values()
 {
     DynamicJsonDocument doc(256);
 
-    doc["AC voltage"] = pdx_rx_buffer[15];
-    doc["DC voltage"] = pdx_rx_buffer[16];
-    doc["Battery voltage"] = pdx_rx_buffer[17];
-    doc["RF Noise floor"] = pdx_rx_buffer[18];
+    doc["Tensiune AC"] = pdx_rx_buffer[15];
+    doc["Tensiune DC"] = pdx_rx_buffer[16];
+    doc["Tensiune baterie"] = pdx_rx_buffer[17];
+    doc["Zgomot RF bazal"] = pdx_rx_buffer[18];
 
     serializeJson(doc, mqtt_tx);
     doc.clear();
@@ -206,13 +206,13 @@ void translate_partition_status(uint8_t position)
     DynamicJsonDocument doc(256);
 
     if (bitRead(pdx_rx_buffer[position], 7))
-        doc.add(F("Pulse Alarm (fire alarm)."));
+        doc.add(F("Alarma puls (alarma foc)."));
     if (bitRead(pdx_rx_buffer[position], 6))
-        doc.add(F("Audible alarm."));
+        doc.add(F("Alarma cu sirena."));
     if (bitRead(pdx_rx_buffer[position], 5))
-        doc.add(F("Silent alarm."));
+        doc.add(F("Alarma muta."));
     if (bitRead(pdx_rx_buffer[position], 4))
-        doc.add(F("Is / was in Alarm Indicator. (Strobe)"));
+        doc.add(F("Indicare optica alarma."));
     if (bitRead(pdx_rx_buffer[position], 3))
         doc.add(F("N/U"));
     if (bitRead(pdx_rx_buffer[position], 2))
@@ -225,59 +225,59 @@ void translate_partition_status(uint8_t position)
     //////////
 
     if (bitRead(pdx_rx_buffer[position + 1], 7))
-        doc.add(F("Bell Activated"));
+        doc.add(F("Sirena activa"));
     if (bitRead(pdx_rx_buffer[position + 1], 6))
-        doc.add(F("Auto-Arming Engaged"));
+        doc.add(F("Auto-armare"));
     if (bitRead(pdx_rx_buffer[position + 1], 5))
-        doc.add(F("Recent Closing Delay"));
+        doc.add(F("Intarziere inchidere"));
     if (bitRead(pdx_rx_buffer[position + 1], 4))
-        doc.add(F("Intellizone Delay"));
+        doc.add(F("Intarziere intellizone"));
     if (bitRead(pdx_rx_buffer[position + 1], 3))
-        doc.add(F("At least one zone is bypassed"));
+        doc.add(F("Zona / zone evitate"));
     if (bitRead(pdx_rx_buffer[position + 1], 2))
-        doc.add(F("Alarm(s) is / are in the memory"));
+        doc.add(F("Alarma/e in memorie"));
     if (bitRead(pdx_rx_buffer[position + 1], 1))
-        doc.add(F("Entry Delay"));
+        doc.add(F("Intarziere intrare"));
     if (bitRead(pdx_rx_buffer[position + 1], 0))
-        doc.add(F("Exit Delay"));
+        doc.add(F("Intarziere iesire"));
 
     //////////
 
     if (bitRead(pdx_rx_buffer[position + 2], 7))
-        doc.add(F("Paramedic Alarm"));
+        doc.add(F("Alarma paramedic"));
     if (bitRead(pdx_rx_buffer[position + 2], 6))
         doc.add(F("Reserved"));
     if (bitRead(pdx_rx_buffer[position + 2], 5))
-        doc.add(F("Arm with a Remote"));
+        doc.add(F("Armare cu telecomanda"));
     if (bitRead(pdx_rx_buffer[position + 2], 4))
-        doc.add(F("Transmission Delay Finished"));
+        doc.add(F("Intarziere transmisie expirata"));
     if (bitRead(pdx_rx_buffer[position + 2], 3))
-        doc.add(F("Bell Delay Finished"));
+        doc.add(F("Intarziere sirena expirata"));
     if (bitRead(pdx_rx_buffer[position + 2], 2))
-        doc.add(F("Entry Delay Finished"));
+        doc.add(F("Intarziere intrare expirata"));
     if (bitRead(pdx_rx_buffer[position + 2], 1))
-        doc.add(F("Exit Delay Finished"));
+        doc.add(F("Intarziere iesire expirata"));
     if (bitRead(pdx_rx_buffer[position + 2], 0))
-        doc.add(F("Intellizone Delay Finished"));
+        doc.add(F("Intarziere intellizone expirata"));
 
     //////////
 
     if (bitRead(pdx_rx_buffer[position + 3], 7))
         doc.add(F("N/U"));
     if (bitRead(pdx_rx_buffer[position + 3], 6))
-        doc.add(F("Wait window (window mode)."));
+        doc.add(F("Fereastra asteptare."));
     if (bitRead(pdx_rx_buffer[position + 3], 5))
         doc.add(F("N/U"));
     if (bitRead(pdx_rx_buffer[position + 3], 4))
-        doc.add(F("In remote delay."));
+        doc.add(F("Intarziare la distanta."));
     if (bitRead(pdx_rx_buffer[position + 3], 3))
         doc.add(F("N/U"));
     if (bitRead(pdx_rx_buffer[position + 3], 2))
-        doc.add(F("StayD mode active."));
+        doc.add(F("Mod StayD activ."));
     if (bitRead(pdx_rx_buffer[position + 3], 1))
-        doc.add(F("Force Arm"));
+        doc.add(F("Armare fortata"));
     if (bitRead(pdx_rx_buffer[position + 3], 0))
-        doc.add(F("Ready Status"));
+        doc.add(F("Pregatit"));
 
     //////////
 
@@ -359,10 +359,10 @@ void translate_zone_status(uint8_t position)
     DynamicJsonDocument doc(256);
 
     if (bitRead(pdx_rx_buffer[position], 7))
-        doc.add(F("Zone was in Alarm"));
+        doc.add(F("Zona a fost in alarma"));
 
     if (bitRead(pdx_rx_buffer[position], 6))
-        doc.add(F("Zone is in Alarm"));
+        doc.add(F("Zone este in alarma"));
 
     if (bitRead(pdx_rx_buffer[position], 5))
         bit5 = true;
@@ -370,22 +370,22 @@ void translate_zone_status(uint8_t position)
         bit4 = true;
 
     if (bit5 && bit4)
-        doc.add(F("In Fire Delay"));
+        doc.add(F("In intarziere foc"));
     if (!bit5 && bit4)
-        doc.add(F("In Entry Delay"));
+        doc.add(F("In intarziere intrare"));
     if (bit5 && !bit4)
-        doc.add(F("In Intellizone Delay"));
+        doc.add(F("In intarziare intellizone"));
     if (!bit5 && !bit4)
-        doc.add(F("In No Delay"));
+        doc.add(F("Fara intarziere"));
 
     if (bitRead(pdx_rx_buffer[position], 3))
-        doc.add(F("Zone Bypassed"));
+        doc.add(F("Zona evitata"));
     if (bitRead(pdx_rx_buffer[position], 2))
-        doc.add(F("Zone Shutdown"));
+        doc.add(F("Zona dezactivata"));
     if (bitRead(pdx_rx_buffer[position], 1))
-        doc.add(F("Zone is in TX Delay"));
+        doc.add(F("Zona in intarziere transmitere"));
     if (bitRead(pdx_rx_buffer[position], 0))
-        doc.add(F("Zone was Bypassed"));
+        doc.add(F("Zone a fost evitata"));
 
     serializeJson(doc, mqtt_tx);
     doc.clear();
@@ -459,13 +459,13 @@ void translate_event()
     switch (pdx_rx_buffer[7])
     {
     case 0:
-        doc["event"] = F("Zone OK");
+        doc["event"] = F("Zona OK");
         is_zone = true;
         break;
         ////////////////////////////////////////////
 
     case 1:
-        doc["event"] = F("Zone open");
+        doc["event"] = F("Zona deschisa");
         is_zone = true;
         break;
         ////////////////////////////////////////////
@@ -476,69 +476,69 @@ void translate_event()
         switch (pdx_rx_buffer[8])
         {
         case 2:
-            doc["event"] = F("Silent alarm");
+            doc["event"] = F("Alarma silentioasa");
             break;
             ///////////
         case 3:
-            doc["event"] = F("Buzzer alarm");
+            doc["event"] = F("Alarma buzzer");
             break;
             ///////////
         case 4:
-            doc["event"] = F("Steady alarm");
+            doc["event"] = F("Alarma continua");
             break;
             ///////////
         case 5:
-            doc["event"] = F("Pulsed alarm");
+            doc["event"] = F("Alarma pulsatorie");
             break;
             ///////////
         case 6:
-            doc["event"] = F("Strobe");
+            doc["event"] = F("Stroboscop");
             break;
             ///////////
         case 7:
-            doc["event"] = F("Alarm stopped");
+            doc["event"] = F("Alarma oprita");
             break;
             ///////////
         case 8:
-            doc["event"] = F("Squawk ON");
+            doc["event"] = F("Semnal acustic tastatura pornit");
             break;
             ///////////
         case 9:
-            doc["event"] = F("Squawk OFF");
+            doc["event"] = F("Semnal acustic tastatura oprit");
             break;
             ///////////
         case 10:
-            doc["event"] = F("Ground start");
+            doc["event"] = F("Inceput de baza");
             break;
             ///////////
         case 11:
-            doc["event"] = F("Disarm partition");
+            doc["event"] = F("Dezarmare partitie");
             break;
             ///////////
         case 12:
-            doc["event"] = F("Arm partition");
+            doc["event"] = F("Armare partitie");
             break;
             ///////////
         case 13:
-            doc["event"] = F("Entry delay started");
+            doc["event"] = F("Intarziere intrare pornita");
             break;
             ///////////
         case 14:
-            doc["event"] = F("Exit delay started");
+            doc["event"] = F("Intarziere iesire pornita");
             sprintf(topic, "%s%s%s%s%s/arm", LOC, TIP, NAME, XTRA, PUB);
             client.publish(topic, "1", true, 0);
             break;
             ///////////
         case 15:
-            doc["event"] = F("Pre-alarm delay");
+            doc["event"] = F("Intarziere pre-alarma");
             break;
             ///////////
         case 16:
-            doc["event"] = F("Report confirmation");
+            doc["event"] = F("Confirmare raport");
             break;
             ///////////
         case 99:
-            doc["event"] = F("Any partition status event");
+            doc["event"] = F("Orice eveniment stare partitie");
             break;
         }
         break;
@@ -550,23 +550,23 @@ void translate_event()
         switch (pdx_rx_buffer[8])
         {
         case 0:
-            doc["event"] = F("Bell OFF");
+            doc["event"] = F("Sirena oprita");
             break;
             ///////////
         case 1:
-            doc["event"] = F("Bell ON");
+            doc["event"] = F("Sirena pornita");
             break;
             ///////////
         case 2:
-            doc["event"] = F("Bell squawk arm");
+            doc["event"] = F("Sirena atentionare armare");
             break;
             ///////////
         case 3:
-            doc["event"] = F("Bell squawk disarm");
+            doc["event"] = F("Sirena atentionare dezarmare");
             break;
             ///////////
         case 99:
-            doc["event"] = F("Any bell status event");
+            doc["event"] = F("Orice eveniment stare sirena");
             break;
         }
         break;
@@ -577,11 +577,11 @@ void translate_event()
         switch (pdx_rx_buffer[8])
         {
         case 0:
-            doc["event"] = F("Telephone line trouble");
+            doc["event"] = F("Probleme linie telefonica");
             break;
             ///////////
         case 1:
-            doc["event"] = F("ENTER + CLEAR + POWER pressed");
+            doc["event"] = F("S-a apasat ENTER + CLEAR + POWER");
             break;
             ///////////
         case 2:
@@ -589,59 +589,59 @@ void translate_event()
             break;
             ///////////
         case 3:
-            doc["event"] = F("Arm in stay mode");
+            doc["event"] = F("Armare in mod Stay");
             break;
             ///////////
         case 4:
-            doc["event"] = F("Arm in sleep mode");
+            doc["event"] = F("Armare in mod Sleep");
             break;
             ///////////
         case 5:
-            doc["event"] = F("Arm in force mode");
+            doc["event"] = F("Armare fortata");
             break;
             ///////////
         case 6:
-            doc["event"] = F("Full arm when armed in stay mode");
+            doc["event"] = F("Armare completa in mod Stay");
             break;
             ///////////
         case 7:
-            doc["event"] = F("PC fail to communicate");
+            doc["event"] = F("Eroare comunicare PC");
             break;
             ///////////
         case 8:
-            doc["event"] = F("Utility Key 1 pressed (1+2)");
+            doc["event"] = F("Apasare tasta utilitara 1 (1+2)");
             break;
             ///////////
         case 9:
-            doc["event"] = F("Utility Key 2 pressed (4+5)");
+            doc["event"] = F("Apasare tasta utilitara 2 (4+5)");
             break;
             ///////////
         case 10:
-            doc["event"] = F("Utility Key 3 pressed (7+8)");
+            doc["event"] = F("Apasare tasta utilitara 3 (7+8)");
             break;
             ///////////
         case 11:
-            doc["event"] = F("Utility Key 4 pressed (2+3)");
+            doc["event"] = F("Apasare tasta utilitara 4 (2+3)");
             break;
             ///////////
         case 12:
-            doc["event"] = F("Utility Key 5 pressed (5+6)");
+            doc["event"] = F("Apasare tasta utilitara 5 (5+6)");
             break;
             ///////////
         case 13:
-            doc["event"] = F("Utility Key 6 pressed (8+9)");
+            doc["event"] = F("Apasare tasta utilitara 6 (8+9)");
             break;
             ///////////
         case 14:
-            doc["event"] = F("Tamper generated alarm");
+            doc["event"] = F("Alarma acces neautorizat");
             break;
             ///////////
         case 15:
-            doc["event"] = F("Supervision loss generated alarm");
+            doc["event"] = F("Alarma pierdere supervizare");
             break;
             ///////////
         case 20:
-            doc["event"] = F("Full arm when armed in sleep mode");
+            doc["event"] = F("Armare completa mod Sleep");
             break;
             ///////////
         case 21:
@@ -649,128 +649,128 @@ void translate_event()
             break;
             ///////////
         case 23:
-            doc["event"] = F("StayD mode activated");
+            doc["event"] = F("Mod StayD activat");
             break;
             ///////////
         case 24:
-            doc["event"] = F("StayD mode deactivated");
+            doc["event"] = F("Mod StayD dezactivat");
             break;
             ///////////
         case 25:
-            doc["event"] = F("IP Registration status change");
+            doc["event"] = F("Schimbare inregistrare IP");
             break;
             ///////////
         case 26:
-            doc["event"] = F("GPRS Registration status change");
+            doc["event"] = F("Schimbare inregistrare GPRS");
             break;
             ///////////
         case 99:
-            doc["event"] = F("Any non-reportable event");
+            doc["event"] = F("Orice eveniment neraportabil");
             break;
         }
         break;
         ////////////////////////////////////////////
 
     case 8:
-        sprintf_P(topic, PSTR("Remote %d, pressed button B"), pdx_rx_buffer[8]);
+        sprintf_P(topic, PSTR("Telecomanda %d, apasare buton B"), pdx_rx_buffer[8]);
         doc["event"] = topic;
         break;
         ////////////////////////////////////////////
 
     case 9:
-        sprintf_P(topic, PSTR("Remote %d, pressed button C"), pdx_rx_buffer[8]);
+        sprintf_P(topic, PSTR("Telecomanda %d, apasare buton C"), pdx_rx_buffer[8]);
         doc["event"] = topic;
         break;
         ////////////////////////////////////////////
 
     case 10:
-        sprintf_P(topic, PSTR("Remote %d, pressed button D"), pdx_rx_buffer[8]);
+        sprintf_P(topic, PSTR("Telecomanda %d, apasare buton D"), pdx_rx_buffer[8]);
         doc["event"] = topic;
         break;
         ////////////////////////////////////////////
 
     case 11:
-        sprintf_P(topic, PSTR("Remote %d, pressed button E"), pdx_rx_buffer[8]);
+        sprintf_P(topic, PSTR("Telecomanda %d, apasare buton E"), pdx_rx_buffer[8]);
         doc["event"] = topic;
         break;
         ////////////////////////////////////////////
 
     case 12:
         is_zone = true;
-        doc["event"] = F("Cold start wireless zone");
+        doc["event"] = F("Pornire la rece zona RF");
         break;
         ////////////////////////////////////////////
 
     case 13:
         is_module = true;
-        sprintf_P(topic, PSTR("Cold start wireless module %d"), pdx_rx_buffer[8]);
+        sprintf_P(topic, PSTR("Pornire la rece modul RF %d"), pdx_rx_buffer[8]);
         doc["event"] = topic;
         break;
         ////////////////////////////////////////////
 
     case 14:
-        sprintf_P(topic, PSTR("Bypass programming user  %d"), pdx_rx_buffer[8]);
+        sprintf_P(topic, PSTR("Programare ocolire utilizator %d"), pdx_rx_buffer[8]);
         doc["event"] = topic;
         break;
         ////////////////////////////////////////////
 
     case 15:
-        sprintf_P(topic, PSTR("User %d code activated output"), pdx_rx_buffer[8]);
+        sprintf_P(topic, PSTR("Utilizator %d iesire activata prin cod"), pdx_rx_buffer[8]);
         doc["event"] = topic;
         break;
         ////////////////////////////////////////////
 
     case 16:
         is_zone = true;
-        doc["event"] = F("Wireless smoke maintenance signal");
+        doc["event"] = F("Semnal mentenanta senzor fum RF");
         break;
         ////////////////////////////////////////////
 
     case 17:
         is_zone = true;
-        doc["event"] = F("Delay zone alarm transmission");
+        doc["event"] = F("Intarziere transmisie alarma zona");
         break;
         ////////////////////////////////////////////
 
     case 18:
         is_zone = true;
-        doc["event"] = F("Zone signal strength weak 1");
+        doc["event"] = F("Semnal zona slab 1");
         break;
         ////////////////////////////////////////////
 
     case 19:
         is_zone = true;
-        doc["event"] = F("Zone signal strength weak 2");
+        doc["event"] = F("Semnal zona slab  2");
         break;
         ////////////////////////////////////////////
 
     case 20:
         is_zone = true;
-        doc["event"] = F("Zone signal strength weak 3");
+        doc["event"] = F("Semnal zona slab  3");
         break;
         ////////////////////////////////////////////
 
     case 21:
         is_zone = true;
-        doc["event"] = F("Zone signal strength weak 4");
+        doc["event"] = F("Semnal zona slab  4");
         break;
         ////////////////////////////////////////////
 
     case 22:
-        sprintf_P(topic, PSTR("Remote %d, button option 5"), pdx_rx_buffer[8]);
+        sprintf_P(topic, PSTR("Telecomanda %d, optiune buton 5"), pdx_rx_buffer[8]);
         doc["event"] = topic;
         break;
         ////////////////////////////////////////////
 
     case 23:
-        sprintf_P(topic, PSTR("Remote %d, button option 6"), pdx_rx_buffer[8]);
+        sprintf_P(topic, PSTR("Telecomanda %d, optiune buton 6"), pdx_rx_buffer[8]);
         doc["event"] = topic;
         break;
         ////////////////////////////////////////////
 
     case 24:
         is_zone = true;
-        doc["event"] = F("Fire Delay started");
+        doc["event"] = F("Intarziere foc pornita");
         break;
         ////////////////////////////////////////////
 
@@ -779,43 +779,43 @@ void translate_event()
         {
             ///////////
         case 1:
-            doc["event"] = F("Software Access: WinLoad/Babyware direct");
+            doc["event"] = F("Acces soft: WinLoad/Babyware direct");
             break;
             ///////////
         case 2:
-            doc["event"] = F("Software Access: WinLoad/Babyware IP module");
+            doc["event"] = F("Acces soft: WinLoad/Babyware modul IP");
             break;
             ///////////
         case 3:
-            doc["event"] = F("Software Access: WinLoad/Babyware GSM module");
+            doc["event"] = F("Acces soft: WinLoad/Babyware modul GSM");
             break;
             ///////////
         case 4:
-            doc["event"] = F("Software Access: WinLoad/Babyware modem");
+            doc["event"] = F("Acces soft: WinLoad/Babyware modem");
             break;
             ///////////
         case 9:
-            doc["event"] = F("Software Access: IP100 direct");
+            doc["event"] = F("Acces soft: IP100 direct");
             break;
             ///////////
         case 10:
-            doc["event"] = F("Software Access: VDMP3 direct");
+            doc["event"] = F("Acces soft: VDMP3 direct");
             break;
             ///////////
         case 11:
-            doc["event"] = F("Software Access: Voice through GSM module");
+            doc["event"] = F("Acces soft: Voce prin modul GSM");
             break;
             ///////////
         case 12:
-            doc["event"] = F("Software Access: Remote access");
+            doc["event"] = F("Acces soft: la distanta");
             break;
             ///////////
         case 13:
-            doc["event"] = F("Software Access: SMS through GSM module");
+            doc["event"] = F("Acces soft: SMS prin modul GSM");
             break;
             ///////////
         case 99:
-            doc["event"] = F("Software Access: Any software access");
+            doc["event"] = F("Acces soft: orice tip de acces");
             break;
         }
         break;
@@ -826,19 +826,19 @@ void translate_event()
         {
             ///////////
         case 0:
-            doc["event"] = F("A bus module was added");
+            doc["event"] = F("Un modul a fost adaugat");
             break;
             ///////////
         case 1:
-            doc["event"] = F("A bus module was removed");
+            doc["event"] = F("Un modul a fost indepartat");
             break;
             ///////////
         case 2:
-            doc["event"] = F("2-way RF Module Communication Failure");
+            doc["event"] = F("Eroare comunicare bidirectionala modul RF");
             break;
             ///////////
         case 3:
-            doc["event"] = F("2-way RF Module Communication Restored");
+            doc["event"] = F("Restabilire comunicare bidirectionala modul RF");
             break;
         }
         break;
@@ -846,13 +846,13 @@ void translate_event()
 
     case 28:
         is_zone = true;
-        doc["event"] = F("StayD pass acknowledged");
+        doc["event"] = F("Prola StayD confirmata");
         break;
         ////////////////////////////////////////////
 
     case 29:
         is_arm = true;
-        sprintf_P(topic, PSTR("Arming with user %d"), pdx_rx_buffer[8]);
+        sprintf_P(topic, PSTR("Armare utilizator %d"), pdx_rx_buffer[8]);
         doc["event"] = topic;
         break;
         ////////////////////////////////////////////
@@ -864,35 +864,35 @@ void translate_event()
         {
             ///////////
         case 0:
-            doc["event"] = F("Auto-arming (on time/no movement)");
+            doc["event"] = F("Auto-armare (cronometru/fara miscare)");
             break;
             ///////////
         case 1:
-            doc["event"] = F("Late to close");
+            doc["event"] = F("Inchidere tarzie");
             break;
             ///////////
         case 2:
-            doc["event"] = F("No movement arming");
+            doc["event"] = F("Armare lipsa miscare");
             break;
             ///////////
         case 3:
-            doc["event"] = F("Partial arming");
+            doc["event"] = F("Armare partiala");
             break;
         ///////////
         case 4:
-            doc["event"] = F("Quick arming");
+            doc["event"] = F("Armare rapida");
             break;
         ///////////
         case 5:
-            doc["event"] = F("Arming through WinLoad / BabyWare");
+            doc["event"] = F("Armare prin WinLoad / BabyWare");
             break;
         ///////////
         case 6:
-            doc["event"] = F("Arming with keyswitch");
+            doc["event"] = F("Armare din buton");
             break;
             ///////////
         case 99:
-            doc["event"] = F("Any special arming");
+            doc["event"] = F("Orice armare speciala");
             break;
         }
         break;
@@ -900,21 +900,21 @@ void translate_event()
 
     case 31:
         is_arm = true;
-        sprintf_P(topic, PSTR("Disarming with user %d"), pdx_rx_buffer[8]);
+        sprintf_P(topic, PSTR("Dezarmare utilizator %d"), pdx_rx_buffer[8]);
         doc["event"] = topic;
         break;
         ////////////////////////////////////////////
 
     case 32:
         is_arm = true;
-        sprintf_P(topic, PSTR("Disarming after alarm with user %d"), pdx_rx_buffer[8]);
+        sprintf_P(topic, PSTR("Dezarmare dupa alarma utilizator %d"), pdx_rx_buffer[8]);
         doc["event"] = topic;
         break;
         ////////////////////////////////////////////
 
     case 33:
         is_arm = true;
-        sprintf_P(topic, PSTR("Alarm cancelled with user %d"), pdx_rx_buffer[8]);
+        sprintf_P(topic, PSTR("Alarma anulata utilizator %d"), pdx_rx_buffer[8]);
         doc["event"] = topic;
         break;
         ////////////////////////////////////////////
@@ -926,39 +926,39 @@ void translate_event()
         {
             ///////////
         case 0:
-            doc["event"] = F("Auto-arm cancelled (on time/no movement)");
+            doc["event"] = F("Auto-armare anulata (cronometru/fara miscare)");
             break;
             ///////////
         case 1:
-            doc["event"] = F("Disarming through WinLoad / BabyWare");
+            doc["event"] = F("Dezarmare prin WinLoad / BabyWare");
             break;
             ///////////
         case 2:
-            doc["event"] = F("Disarming through WinLoad / BabyWare after alarm");
+            doc["event"] = F("Dezarmare prin WinLoad / BabyWare dupa alarma");
             break;
             ///////////
         case 3:
-            doc["event"] = F("Alarm cancelled through WinLoad / BabyWare");
+            doc["event"] = F("Alarma anulata prin WinLoad / BabyWare");
             break;
         ///////////
         case 4:
-            doc["event"] = F("Paramedical alarm cancelled");
+            doc["event"] = F("Alarma paramedic anulata");
             break;
         ///////////
         case 5:
-            doc["event"] = F("Disarm with keyswitch");
+            doc["event"] = F("Dezarmare din buton");
             break;
         ///////////
         case 6:
-            doc["event"] = F("Disarm with keyswitch after an alarm");
+            doc["event"] = F("Dezarmare din buton dupa alarma");
             break;
         ///////////
         case 7:
-            doc["event"] = F("Alarm cancelled with keyswitch");
+            doc["event"] = F("Alarma anulata din buton");
             break;
             ///////////
         case 99:
-            doc["event"] = F("Any special disarming");
+            doc["event"] = F("Orice dezarmare speciala");
             break;
         }
         break;
@@ -966,31 +966,31 @@ void translate_event()
 
     case 35:
         is_zone = true;
-        doc["event"] = F("Zone bypassed");
+        doc["event"] = F("Zona ocolita");
         break;
         ////////////////////////////////////////////
 
     case 36:
         is_zone = true;
-        doc["event"] = F("Zone in alarm");
+        doc["event"] = F("Zona in alarma");
         break;
         ////////////////////////////////////////////
 
     case 37:
         is_zone = true;
-        doc["event"] = F("Fire alarm");
+        doc["event"] = F("Alarma foc");
         break;
         ////////////////////////////////////////////
 
     case 38:
         is_zone = true;
-        doc["event"] = F("Zone alarm restore");
+        doc["event"] = F("Alarma zona restabilita");
         break;
         ////////////////////////////////////////////
 
     case 39:
         is_zone = true;
-        doc["event"] = F("Fire alarm restore");
+        doc["event"] = F("Alarma foc restabilita");
         break;
         ////////////////////////////////////////////
 
@@ -1001,35 +1001,35 @@ void translate_event()
         {
             ///////////
         case 0:
-            doc["event"] = F("Panic non-medical emergency");
+            doc["event"] = F("Panica urgenta");
             break;
             ///////////
         case 1:
-            doc["event"] = F("Panic medical");
+            doc["event"] = F("Panica medicala");
             break;
             ///////////
         case 2:
-            doc["event"] = F("Panic fire");
+            doc["event"] = F("Panica foc");
             break;
             ///////////
         case 3:
-            doc["event"] = F("Recent closing");
+            doc["event"] = F("Inchidere recenta");
             break;
         ///////////
         case 4:
-            doc["event"] = F("Global shutdown");
+            doc["event"] = F("Inchidere globala");
             break;
         ///////////
         case 5:
-            doc["event"] = F("Duress alarm");
+            doc["event"] = F("Alarma constrangere");
             break;
         ///////////
         case 6:
-            doc["event"] = F("Keyboard lockout");
+            doc["event"] = F("Tastatura blocata");
             break;
             ///////////
         case 99:
-            doc["event"] = F("Any special alarm event");
+            doc["event"] = F("Orice eveniment alarma speciala");
             break;
         }
         break;
@@ -1037,19 +1037,19 @@ void translate_event()
 
     case 41:
         is_zone = true;
-        doc["event"] = F("Zone shutdown");
+        doc["event"] = F("Zona dezactivata");
         break;
         ////////////////////////////////////////////
 
     case 42:
         is_zone = true;
-        doc["event"] = F("Zone tampered");
+        doc["event"] = F("Zona alterata");
         break;
         ////////////////////////////////////////////
 
     case 43:
         is_zone = true;
-        doc["event"] = F("Zone tamper restore");
+        doc["event"] = F("Zona restabilire alterare");
         break;
         ////////////////////////////////////////////
 
@@ -1059,87 +1059,87 @@ void translate_event()
         switch (pdx_rx_buffer[8])
         {
         case 1:
-            doc["event"] = F("AC failure");
+            doc["event"] = F("Lipsa alimentare AC");
             break;
             ///////////
         case 2:
-            doc["event"] = F("Battery failure");
+            doc["event"] = F("Eroare baterie");
             break;
             ///////////
         case 3:
-            doc["event"] = F("Auxiliary current overload");
+            doc["event"] = F("Consum auxiliar excesiv");
             break;
             ///////////
         case 4:
-            doc["event"] = F("Bell current overload");
+            doc["event"] = F("Consum sirena excesiv");
             break;
         ///////////
         case 5:
-            doc["event"] = F("Bell disconnected");
+            doc["event"] = F("Sirena deconectata");
             break;
         ///////////
         case 6:
-            doc["event"] = F("Clock loss");
+            doc["event"] = F("Pierdere ceas");
             break;
         ///////////
         case 7:
-            doc["event"] = F("Fire loop trouble");
+            doc["event"] = F("Eroare foc");
             break;
         ///////////
         case 8:
-            doc["event"] = F("Fail to communicate to monitoring station telephone #1");
+            doc["event"] = F("Eroare comunicare telefonica centrala 1");
             break;
         ///////////
         case 9:
-            doc["event"] = F("Fail to communicate to monitoring station telephone #2");
+            doc["event"] = F("Eroare comunicare telefonica centrala 2");
             break;
         ///////////
         case 11:
-            doc["event"] = F("Fail to communicate to voice report");
+            doc["event"] = F("Eroare comunicare raport vocal");
             break;
         ///////////
         case 12:
-            doc["event"] = F("RF jamming");
+            doc["event"] = F("Bruiaj RF");
             break;
         ///////////
         case 13:
-            doc["event"] = F("GSM RF jamming");
+            doc["event"] = F("Bruiaj GSM");
             break;
         ///////////
         case 14:
-            doc["event"] = F("GSM no service");
+            doc["event"] = F("Fara semnal GSM");
             break;
         ///////////
         case 15:
-            doc["event"] = F("GSM supervision lost");
+            doc["event"] = F("Supervizare GSM pierduta");
             break;
         ///////////
         case 16:
-            doc["event"] = F("Fail To Communicate IP Receiver 1 (GPRS)");
+            doc["event"] = F("Eroare comunicare IP1 (GPRS)");
             break;
         ///////////
         case 17:
-            doc["event"] = F("Fail To Communicate IP Receiver 2 (GPRS)");
+            doc["event"] = F("Eroare comunicare IP2 (GPRS)");
             break;
         ///////////
         case 18:
-            doc["event"] = F("IP Module No Service");
+            doc["event"] = F("Modul IP neconectabil");
             break;
         ///////////
         case 19:
-            doc["event"] = F("IP Module Supervision Loss");
+            doc["event"] = F("Supervizare modul IP pierduta");
             break;
         ///////////
         case 20:
-            doc["event"] = F("Fail To Communicate IP Receiver 1 (IP)");
+            doc["event"] = F("Eroare comunicare IP1 (IP)");
             break;
         ///////////
         case 21:
-            doc["event"] = F("Fail To Communicate IP Receiver 2 (IP)");
+            doc["event"] = F("Eroare comunicare IP2 (IP)");
             break;
             ///////////
         case 99:
-            doc["event"] = F("Any new trouble event");
+            doc["event"] = F("Orice eveniment eroare nou");
             break;
         }
         break;
@@ -1151,91 +1151,91 @@ void translate_event()
         switch (pdx_rx_buffer[8])
         {
         case 0:
-            doc["event"] = F("Telephone line restored");
+            doc["event"] = F("Linie telephone restaurata");
             break;
             ///////////
         case 1:
-            doc["event"] = F("AC failure restore");
+            doc["event"] = F("Lipsa AC restaurata");
             break;
             ///////////
         case 2:
-            doc["event"] = F("Battery failure restore");
+            doc["event"] = F("Eroare baterie restaurata");
             break;
             ///////////
         case 3:
-            doc["event"] = F("Auxiliary current overload restore");
+            doc["event"] = F("Suprasarcina auxiliara restaurata");
             break;
             ///////////
         case 4:
-            doc["event"] = F("Bell current overload restore");
+            doc["event"] = F("Suprasarcina sirena restaurata");
             break;
         ///////////
         case 5:
-            doc["event"] = F("Bell disconnected restore");
+            doc["event"] = F("Deconectare sirena restaurata");
             break;
         ///////////
         case 6:
-            doc["event"] = F("Clock loss restore");
+            doc["event"] = F("Pierdere ceas restaurata");
             break;
         ///////////
         case 7:
-            doc["event"] = F("Fire loop trouble restore");
+            doc["event"] = F("Eroare foc restaurata");
             break;
         ///////////
         case 8:
-            doc["event"] = F("Fail to communicate to monitoring station telephone #1 restore");
+            doc["event"] = F("Comunicare telefon centrala 1 restaurat");
             break;
         ///////////
         case 9:
-            doc["event"] = F("Fail to communicate to monitoring station telephone #2 restore");
+            doc["event"] = F("Comunicare telefon centrala 2 restaurat");
             break;
         ///////////
         case 11:
-            doc["event"] = F("Fail to communicate to voice report restore");
+            doc["event"] = F("Comunicare raport vocal restaurat");
             break;
         ///////////
         case 12:
-            doc["event"] = F("RF jamming restore");
+            doc["event"] = F("Bruiaj RF restaurat");
             break;
         ///////////
         case 13:
-            doc["event"] = F("GSM RF jamming restore");
+            doc["event"] = F("Briaj GSM restaurat");
             break;
         ///////////
         case 14:
-            doc["event"] = F("GSM no service restore");
+            doc["event"] = F("Lipsa serviciu GSM restaurat");
             break;
         ///////////
         case 15:
-            doc["event"] = F("GSM supervision lost restore");
+            doc["event"] = F("Supervizare GSM restaurata");
             break;
         ///////////
         case 16:
-            doc["event"] = F("Fail To Communicate restore IP Receiver 1 (GPRS)");
+            doc["event"] = F("Eroare comunicare IP1 (GPRS) restaurata");
             break;
         ///////////
         case 17:
-            doc["event"] = F("Fail To Communicate restore IP Receiver 2 (GPRS)");
+            doc["event"] = F("Eroare comunicare IP2 (GPRS) restaurata");
             break;
         ///////////
         case 18:
-            doc["event"] = F("IP Module No Service restore");
+            doc["event"] = F("Serviciu modul IP restaurat");
             break;
         ///////////
         case 19:
-            doc["event"] = F("IP Module Supervision Loss restore");
+            doc["event"] = F("Supervizare modul IP restaurata");
             break;
         ///////////
         case 20:
-            doc["event"] = F("Fail To Communicate restore IP Receiver 1 (IP)");
+            doc["event"] = F("Eroare comunicare IP1 (IP) restaurata");
             break;
         ///////////
         case 21:
-            doc["event"] = F("Fail To Communicate restore IP Receiver 2 (IP)");
+            doc["event"] = F("Eroare comunicare IP2 (IP) restaurata");
             break;
             ///////////
         case 99:
-            doc["event"] = F("Any new trouble restored event");
+            doc["event"] = F("Orice eveniment restarurare eroare");
             break;
         }
         break;
@@ -1248,23 +1248,23 @@ void translate_event()
         {
             ///////////
         case 0:
-            doc["event"] = F("Bus module communication fault");
+            doc["event"] = F("Eroare comunicare modul bus");
             break;
             ///////////
         case 1:
-            doc["event"] = F("Bus module tamper trouble");
+            doc["event"] = F("Acces neautorizat modul bus");
             break;
             ///////////
         case 2:
-            doc["event"] = F("Bus module power fail");
+            doc["event"] = F("Pierdere alimentare modul bus");
             break;
             ///////////
         case 3:
-            doc["event"] = F("Bus module battery failure");
+            doc["event"] = F("Eroare baterie modul bus");
             break;
             ///////////
         case 99:
-            doc["event"] = F("Any bus module trouble event");
+            doc["event"] = F("Orice problema modul bus");
             break;
         }
         break;
@@ -1277,23 +1277,23 @@ void translate_event()
         {
             ///////////
         case 0:
-            doc["event"] = F("Bus module communication fault restore");
+            doc["event"] = F("Modul bus, comunicatie restaurata");
             break;
             ///////////
         case 1:
-            doc["event"] = F("Bus module tamper trouble restore");
+            doc["event"] = F("Modul bus, restaurare acces neautorizat");
             break;
             ///////////
         case 2:
-            doc["event"] = F("Bus module power fail restore");
+            doc["event"] = F("Modul bus, restaurare alimentare AC");
             break;
             ///////////
         case 3:
-            doc["event"] = F("Bus module battery failure restore");
+            doc["event"] = F("Modul bus, restaurare eroare baterie");
             break;
             ///////////
         case 99:
-            doc["event"] = F("Any bus module trouble restored event");
+            doc["event"] = F("Modul bus, restaurare orice problema");
             break;
         }
         break;
@@ -1304,43 +1304,43 @@ void translate_event()
         {
             ///////////
         case 0:
-            doc["event"] = F("System power up");
+            doc["event"] = F("Pornire sistem");
             break;
             ///////////
         case 1:
-            doc["event"] = F("Reporting test");
+            doc["event"] = F("Test raportare");
             break;
             ///////////
         case 2:
-            doc["event"] = F("Software log on");
+            doc["event"] = F("Autentificare software");
             break;
             ///////////
         case 3:
-            doc["event"] = F("Software log off");
+            doc["event"] = F("Deconectare software");
             break;
             ///////////
         case 4:
-            doc["event"] = F("Installer in programming mode");
+            doc["event"] = F("Intalator in mod programare");
             break;
             ///////////
         case 5:
-            doc["event"] = F("Installer exited programming mode");
+            doc["event"] = F("Instalator deconectat");
             break;
             ///////////
         case 6:
-            doc["event"] = F("Maintenance in programming mode");
+            doc["event"] = F("Mentenanta in mod programare");
             break;
             ///////////
         case 7:
-            doc["event"] = F("Maintenance exited programming mode");
+            doc["event"] = F("Mentenanta decontectata");
             break;
             ///////////
         case 8:
-            doc["event"] = F("Closing delinquency delay elapsed");
+            doc["event"] = F("Intarziere deliventa inchidere terminata");
             break;
             ///////////
         case 99:
-            doc["event"] = F("Any special event");
+            doc["event"] = F("Orice eveniment special");
             break;
         }
         break;
@@ -1348,82 +1348,82 @@ void translate_event()
 
     case 49:
         is_zone = true;
-        doc["event"] = F("Low battery on zone");
+        doc["event"] = F("Zona cu baterie descarcata");
         break;
         ////////////////////////////////////////////
 
     case 50:
         is_zone = true;
-        doc["event"] = F("Low battery on zone restore");
+        doc["event"] = F("Zona cu baterie restaurata");
         break;
         ////////////////////////////////////////////
 
     case 51:
         is_zone = true;
-        doc["event"] = F("Zone supervision trouble");
+        doc["event"] = F("Zona cu eroare supervizare");
         break;
         ////////////////////////////////////////////
 
     case 52:
         is_zone = true;
-        doc["event"] = F("Zone supervision restore");
+        doc["event"] = F("Zona cu supervizare restaurata");
         break;
         ////////////////////////////////////////////
 
     case 53:
         is_module = true;
-        sprintf_P(topic, PSTR("Wireless module %d supervision trouble"), pdx_rx_buffer[8]);
+        sprintf_P(topic, PSTR("Modul RF %d cu eroare supervizare"), pdx_rx_buffer[8]);
         doc["event"] = topic;
         break;
         ////////////////////////////////////////////
 
     case 54:
         is_module = true;
-        sprintf_P(topic, PSTR("Wireless module %d supervision restore"), pdx_rx_buffer[8]);
+        sprintf_P(topic, PSTR("Modul RF %d cu supervizare restaurata"), pdx_rx_buffer[8]);
         doc["event"] = topic;
         break;
         ////////////////////////////////////////////
 
     case 55:
         is_module = true;
-        sprintf_P(topic, PSTR("Wireless module %d tamper trouble"), pdx_rx_buffer[8]);
+        sprintf_P(topic, PSTR("Modul RF %d cu acces neautorizat"), pdx_rx_buffer[8]);
         doc["event"] = topic;
         break;
         ////////////////////////////////////////////
 
     case 56:
         is_module = true;
-        sprintf_P(topic, PSTR("Wireless module %d tamper restore"), pdx_rx_buffer[8]);
+        sprintf_P(topic, PSTR("Modul RF %d restaurare acces neautorizat"), pdx_rx_buffer[8]);
         doc["event"] = topic;
         break;
         ////////////////////////////////////////////
 
     case 57:
         is_alarm = true;
-        sprintf_P(topic, PSTR("Non-medical alarm (paramedic) user %d"), pdx_rx_buffer[8]);
+        sprintf_P(topic, PSTR("Alarma non-medicala (paramedic) utilizator %d"), pdx_rx_buffer[8]);
         doc["event"] = topic;
         break;
         ////////////////////////////////////////////
 
     case 58:
         is_zone = true;
-        doc["event"] = F("Zone forced");
+        doc["event"] = F("Zona fortata");
         break;
         ////////////////////////////////////////////
 
     case 59:
         is_zone = true;
-        doc["event"] = F("Zone included");
+        doc["event"] = F("Zona inclusa");
         break;
         ////////////////////////////////////////////
 
     case 64:
-        sprintf_P(topic, PSTR("System Status  %d"), pdx_rx_buffer[8]);
+        sprintf_P(topic, PSTR("Stare sistem %d"), pdx_rx_buffer[8]);
         doc["event"] = topic;
         break;
 
     default:
-        doc["event"] = F("Undocumented");
+        doc["event"] = F("Nedocumentat");
     }
 
     if (is_zone)
